@@ -5,6 +5,7 @@
     bridge = window.MotionAstraBridge;
   const state = {
       tab: "Text",
+      motionClipboard: null,
       preset: null,
       params: {},
       busy: false,
@@ -71,6 +72,8 @@
     document
       .querySelectorAll("[data-host]")
       .forEach((b) => (b.disabled = value || !bridge.isReady()));
+    $("paste-motion").disabled = $("paste-motion").disabled || !state.motionClipboard;
+    $("paste-motion").title = state.motionClipboard ? "Paste at the playhead; animated target properties are skipped." : "Copy Motion from one animated layer first.";
     $("apply").disabled = $("apply").disabled || state.invalid.size > 0;
     $("compact-fx").disabled =
       $("compact-fx").disabled ||
@@ -144,7 +147,7 @@
     busy(state.busy);
   }
   function mutates(payload) {
-    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
+    return ["apply","update","generateBackground","tool","compact","pasteMotion"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
   }
   async function action(payload) {
     if (state.busy || (state.recovery && mutates(payload))) return null;
@@ -165,7 +168,8 @@
         if (["apply", "update", "generateBackground"].includes(payload.action)) ZxTCollections.record("core:" + payload.id);
         if (payload.action === "yuText" && payload.operation === "apply") ZxTCollections.record("yu:" + payload.id);
       }
-      if (r.changed > 0 && r.severity === "warning") state.recovery = true;
+      if (r.changed > 0 && r.severity === "warning" && (payload.action !== "pasteMotion" || r.recovery)) state.recovery = true;
+      if (payload.action === "pasteMotion" && r.recovery) state.recovery = true;
       if (r.message) notice(r.message, r.severity || "success");
       return r;
     } catch (e) {
@@ -203,7 +207,7 @@
     if (name === "Text") name = "YU";
     state.tab = name;
     if (window.ZxTWorkspace) ZxTWorkspace.navigate(name);
-    $("collection-filters").hidden = !["YU", "Background"].includes(name);
+    document.querySelector('[data-collection-scope="Solid"]').hidden = name !== "Background";
     close();
     $("library").hidden = !["YU", "Background"].includes(name);
     if (name === "YU") $("text-tools-group").appendChild($("library"));
@@ -244,7 +248,7 @@
       (p) =>
         p.category === (state.tab === "YU" ? "Text" : state.tab) &&
         `${p.name} ${p.description}`.toLowerCase().includes(state.query),
-    ), p => "core:" + p.id);
+    ), p => "core:" + p.id, state.tab === "YU" ? "Text" : "Solid");
     list.forEach((p, i) => {
       const article = el("article", "card"),
         view = el("button", "card-preview"),
@@ -281,7 +285,7 @@
       article.onfocusout = () => MotionPreview.play(canvas, false);
     });
     if (!list.length)
-      $("cards").appendChild(el("p", "empty", ZxTCollections.empty()));
+      $("cards").appendChild(el("p", "empty", ZxTCollections.empty(state.tab === "YU" ? "Text" : "Solid")));
     busy(state.busy);
   }
   function preview() {
@@ -336,7 +340,7 @@
       input.id = "param-" + d.id;
       label.htmlFor = input.id;
       const live = d.id === "progress" || d.id === "choice";
-      label.appendChild(el("small", "control-kind", live ? "AE keyframes" : "Panel setting"));
+      if (live) label.appendChild(el("small", "control-kind", "AE keyframes"));
       if (live) label.title = d.id === "choice" ? "Enable Choice slider mode. Animate MA2 choice in AE; explicit panel edits add a key at the playhead when already animated." : "Enable manual Progress. Animate the native Progress slider in AE; explicit panel edits add a key at the playhead when already animated.";
       row.dataset.search = (d.label + " " + d.group).toLowerCase();
       row.appendChild(label);
@@ -487,7 +491,7 @@
       (p.id === "switcher"
         ? "Choice slider mode: animate MA2 choice in AE Effect Controls (1 = first phrase). Panel changes take effect on Update. Automatic mode ignores Choice. "
         : "") +
-      "Animation starts at the layer in-point. Drag [FX End] to retime; Loop mode: None, Ping-Pong, Cycle or Continue. Static backgrounds freeze at the start. Use FX Tweaker for settings. Compact mode keeps one Progress controller; enable manual Progress to animate it. Panel settings apply on Update. Unchanged animated colors and sliders are preserved. Editing an animated value adds a key at the playhead. Count rebuilds artwork only when it has no custom animation.";
+      "Animation starts at the layer in-point. Drag [FX End] to retime; Loop mode: None, Ping-Pong, Cycle or Continue. Static backgrounds freeze at the start. Use FX Tweaker for settings. Compact mode keeps one Progress controller; enable manual Progress to animate it. Settings apply on Update. Unchanged animated colors and sliders are preserved. Editing an animated value adds a key at the playhead. Count rebuilds artwork only when it has no custom animation.";
     document.querySelector(".inspector-scroll").scrollTop = 0;
     $("inspector").scrollTop = 0;
     $("close").focus();
@@ -619,6 +623,25 @@
         if (!state.busy) tab(b.dataset.tab);
       }),
   );
+  $("copy-motion").onclick = async () => {
+    if (state.busy || state.recovery) return;
+    // A failed recopy must not leave a stale buffer ready for accidental Paste.
+    state.motionClipboard = null;
+    $("motion-clipboard").textContent = "Copy Transform keyframes from one layer first. Paste starts at the playhead.";
+    const result = await action({action: "copyMotion"});
+    if (result && result.motion) {
+      state.motionClipboard = result.motion;
+      $("motion-clipboard").textContent = `${result.motion.properties.length} properties · ${result.motion.keyframes} keyframes ready. Paste starts at the playhead.`;
+    }
+    busy(state.busy);
+  };
+  $("paste-motion").onclick = () => {
+    if (!state.motionClipboard) {
+      notice("Copy Motion from one animated layer first.", "info");
+      return;
+    }
+    return action({action: "pasteMotion", motion: state.motionClipboard});
+  };
   const glyphs = ["↖", "↑", "↗", "←", "·", "→", "↙", "↓", "↘"];
   glyphs.forEach((g, i) => {
     const b = el("button", "", g);
@@ -648,14 +671,6 @@
     .forEach(
       (b) => (b.onclick = () => tool("arrange", { mode: b.dataset.order })),
     );
-  document.querySelectorAll("[data-ease]").forEach(
-    (b) =>
-      (b.onclick = () =>
-        tool("ease", {
-          mode: b.dataset.ease,
-          strength: Number($("ease-strength").value),
-        })),
-  );
   document
     .querySelectorAll("[data-align]")
     .forEach(
@@ -676,12 +691,6 @@
       x: Number($("offset-x").value),
       y: Number($("offset-y").value),
       z: Number($("offset-z").value),
-    });
-  $("text-style").onclick = () =>
-    tool("style", {
-      size: Number($("text-size").value),
-      color: $("text-color").value,
-      align: $("text-align").value,
     });
   function review(name) {
     pendingRemove = name;
@@ -786,11 +795,12 @@
     loadAnimation: phase => { tab("YU"); return window.MotionAstraYUUI.load(phase); }
   });
   if (window.ZxTCollections) {
-    document.querySelectorAll("[data-collection]").forEach(b => b.onclick = () => ZxTCollections.setMode(b.dataset.collection));
+    document.querySelectorAll("[data-collection]").forEach(b => b.onclick = () => ZxTCollections.setMode(b.dataset.collection, b.closest("[data-collection-scope]").dataset.collectionScope));
     ZxTCollections.subscribe(() => {
-      document.querySelectorAll("[data-collection]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.collection === ZxTCollections.mode)));
+      document.querySelectorAll("[data-collection]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.collection === ZxTCollections.getMode(b.closest("[data-collection-scope]").dataset.collectionScope))));
       if (["YU", "Background"].includes(state.tab)) render();
       if (window.MotionAstraYUUI) window.MotionAstraYUUI.refreshCollection();
+      if (window.MotionAstraCreate) window.MotionAstraCreate.refreshCollection();
       busy(state.busy);
     });
   }

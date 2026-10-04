@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <script src="js/theme.js"></script>
-    <title>ZxT-Motions 3.6.1 Alpha</title>
+    <title>ZxT-Motions v1.0.0 — Official Release</title>
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/studio.css" />
   </head>
@@ -12,7 +12,7 @@
     <header>
       <a class="brand" href="index.html"
         ><span class="brand-icon"><i data-lucide="asterisk"></i></span
-        >ZxT-Motions <b>3.6.1</b></a
+        >ZxT-Motions <b>v1.0.0</b></a
       >
       <div class="header-actions">
         <button data-tab="Settings" aria-label="Settings" title="Appearance and settings"><i data-lucide="settings"></i></button>
@@ -69,7 +69,6 @@
         ><button id="load-fx" data-host>
           <i data-lucide="sliders-horizontal"></i>Load settings</button>
       </div>
-      <div id="collection-filters" role="group" aria-label="Preset collection"><button data-collection="all" aria-pressed="true">All</button><button data-collection="favorites" aria-pressed="false">Favorites</button><button data-collection="recent" aria-pressed="false">Recent</button></div>
       <details id="selected-layer-inspector"><summary id="selection-summary">Layer Inspector</summary><div id="selection-content"></div><button id="selection-refresh" data-host>Refresh selection</button></details>
     </div>
     <div id="workspace">
@@ -79,6 +78,8 @@
           <div class="eyebrow">START WITH SOMETHING SIMPLE</div>
           <h1>Create</h1>
           <p>Native, editable layers in your active composition.</p>
+          <div class="collection-filters" data-collection-scope="Create" role="group" aria-label="Create collection"><button type="button" data-collection="all" aria-pressed="true">All</button><button type="button" data-collection="favorites" aria-pressed="false">Favorites</button><button type="button" data-collection="recent" aria-pressed="false">Recent</button></div>
+          <p id="create-empty" class="empty" hidden></p>
           <div class="create-grid">
             <form id="create-text" class="create-card">
               <h2><i data-lucide="type"></i> Text</h2>
@@ -247,6 +248,7 @@ ZxT-Motions</textarea
           <div class="eyebrow" id="library-kicker">TEXT TOOLS FX</div>
           <h1 id="library-title">Words in motion.</h1>
           <p id="library-help">Select a text layer before applying FX.</p>
+          <div class="collection-filters" data-collection-scope="Solid" role="group" aria-label="Solid collection"><button type="button" data-collection="all" aria-pressed="true">All</button><button type="button" data-collection="favorites" aria-pressed="false">Favorites</button><button type="button" data-collection="recent" aria-pressed="false">Recent</button></div>
           <div id="cards"></div>
         </section>
         <section id="motion-curve" hidden aria-label="Motion Curve">
@@ -371,6 +373,7 @@ ZxT-Motions</textarea
             </div>
           </div>
           <div id="yu-browser">
+            <div class="collection-filters" data-collection-scope="Text" role="group" aria-label="Text collection"><button type="button" data-collection="all" aria-pressed="true">All</button><button type="button" data-collection="favorites" aria-pressed="false">Favorites</button><button type="button" data-collection="recent" aria-pressed="false">Recent</button></div>
             <div class="yu-filters">
               <label for="yu-category">Animation category</label>
               <select id="yu-category" aria-label="Animation category"></select>
@@ -386,7 +389,7 @@ ZxT-Motions</textarea
             <div class="yu-edit-scroll">
               <button id="yu-back">← Library</button>
               <h2 id="yu-title"></h2>
-              <p id="yu-target"></p><p id="yu-selection-guidance" class="target-guidance" role="status"></p><p class="animation-settings-guide">Panel settings apply on Apply/Save. Animate in AE with native text animators. A phase with custom keyframes or expressions is protected from replacement.</p>
+              <p id="yu-target"></p><p id="yu-selection-guidance" class="target-guidance" role="status"></p><p class="animation-settings-guide">Settings apply on Apply/Save. Animate in AE with native text animators. A phase with custom keyframes or expressions is protected from replacement.</p>
               <canvas
                 id="yu-preview"
                 width="600"
@@ -463,8 +466,17 @@ ZxT-Motions</textarea
           <div class="eyebrow">EVERYDAY CONTROLS</div>
           <h1>Quick Tools</h1>
           <p>
-            Tools operate on selected layers. Every action has one Undo step.
+            Tools operate on selected layers. Edits use one Undo step; Copy Motion only reads keyframes.
           </p>
+          <details id="transform-motion" open>
+            <summary><i data-lucide="copy"></i>Copy / Paste Motion</summary>
+            <div class="button-grid">
+              <button id="copy-motion" type="button" data-host>Copy Motion</button>
+              <button id="paste-motion" type="button" data-host disabled>Paste Motion</button>
+            </div>
+            <p id="motion-clipboard" class="hint" role="status">Copy Transform keyframes from one layer first. Paste starts at the playhead.</p>
+            <p class="hint">Transform only. Existing target keyframes and expressions are protected; those properties are skipped.</p>
+          </details>
           <details id="tweaker" open>
             <summary>FX settings</summary>
             <p>
@@ -615,50 +627,6 @@ ZxT-Motions</textarea
               parent was animated.
             </p>
           </details>
-          <details>
-            <summary><i data-lucide="activity"></i>Keyframe easing</summary>
-            <p>Select timeline keyframes before using these buttons.</p>
-            <label
-              >Influence · %<input
-                id="ease-strength"
-                type="number"
-                value="75"
-                min="1"
-                max="100"
-            /></label>
-            <div class="button-grid">
-              <button data-ease="in" data-host>Ease in</button
-              ><button data-ease="out" data-host>Ease out</button
-              ><button data-ease="both" data-host>Easy Ease</button
-              ><button data-ease="linear" data-host>Linear</button>
-            </div>
-          </details>
-          <details>
-            <summary><i data-lucide="type"></i>Text appearance</summary>
-            <p>
-              Changes the underlying text style, including counters and
-              switchers.
-            </p>
-            <div class="row">
-              <label
-                >Size · px<input
-                  id="text-size"
-                  type="number"
-                  value="100"
-                  min="1"
-                  max="1000" /></label
-              ><label
-                >Fill<input id="text-color" type="color" value="#ffffff"
-              /></label>
-            </div>
-            <label
-              >Paragraph alignment<select id="text-align">
-                <option value="left">Left</option>
-                <option value="center">Center</option>
-                <option value="right">Right</option>
-              </select></label
-            ><button id="text-style" data-host>Apply text style</button>
-          </details>
           <details open>
             <summary><i data-lucide="eraser"></i>Remove effects</summary>
             <p>Removes effects only from selected unlocked layers.</p>
@@ -722,6 +690,7 @@ ZxT-Motions</textarea
             ></textarea
             ><a href="catalog.html">Open preview catalog ↗</a>
             <p>
+              ZxT-Motions v1.0.0 · Official Release.
               All panel assets are local. Browser mode offers previews; Apply
               and tools require After Effects.
             </p>

@@ -8,7 +8,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),{create}=re
  await page.addInitScript(()=>{window.previewWords=[];const fill=CanvasRenderingContext2D.prototype.fillText;CanvasRenderingContext2D.prototype.fillText=function(t,...args){window.previewWords.push(String(t));return fill.call(this,t,...args);};const bridge={isAvailable:()=>true,isReady:()=>true,call:async p=>{const r=await window.hostRpc(p);if(!r.ok)throw Error(r.message);if(p.action!=='status')window.lastReply=r;return r;}};Object.defineProperty(window,'MotionAstraBridge',{get:()=>bridge,set(){}});});
  await page.goto(require('node:url').pathToFileURL(path.resolve(__dirname,'../index.html')).href);
  await page.waitForFunction(()=>document.querySelector('#selection-summary').textContent.includes('Title'));
- const filter=mode=>page.locator('[data-collection="'+mode+'"]').click();
+ const filter=mode=>page.locator('[data-collection="'+mode+'"]:visible').click();
  await filter('favorites');assert.equal(await page.locator('.card,.yu-card').count(),0);await filter('all');
  await page.locator('.card .favorite-toggle').first().click();await page.locator('.yu-card .favorite-toggle').first().click();await filter('favorites');assert.equal(await page.locator('.card').count(),1);assert.equal(await page.locator('.yu-card').count(),1);
  await page.reload();await filter('favorites');assert.equal(await page.locator('.card,.yu-card').count(),2);
@@ -24,7 +24,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),{create}=re
  await page.locator('#close').click();await page.locator('[data-workspace="Library"]').click();await page.locator('[data-tab="YU"]').click();await filter('all');await page.locator('.card').filter({hasText:'Counter Text'}).locator('.customize').click();
  await page.locator('#param-tint').fill('#2266ff');await page.locator('#update').click();await page.waitForFunction(()=>!document.querySelector('#update').hidden && !document.querySelector('#quick-anchor').disabled);assert.equal(color.numKeys,3);
  env.comp.time=5.5;await page.locator('#param-end').fill('600');await page.locator('#update').click();await page.waitForFunction(()=>!document.querySelector('#update').hidden && !document.querySelector('#quick-anchor').disabled);assert.equal(color.numKeys,3,'Prior color edit must not repeat on a later Apply');
- await filter('recent');await page.locator('#load-fx').click();await page.waitForFunction(()=>document.querySelector('#apply').hidden);
+ await page.locator('#close').click();await filter('recent');await page.locator('#load-fx').click();await page.waitForFunction(()=>document.querySelector('#apply').hidden);
  text.selected=false;shape.selected=true;await page.locator('#selection-refresh').click();await page.waitForFunction(()=>document.querySelector('#update').disabled);assert.equal(shape.fx.numProperties,0);assert((await page.locator('#target-guidance').textContent()).includes('Selection changed'));
  await page.locator('#close').click();await page.locator('[data-workspace="Library"]').click();await page.locator('[data-tab="YU"]').click();await page.locator('.yu-customize').click();assert(await page.locator('#yu-apply').isDisabled());
  text.selected=true;await page.locator('#selection-refresh').click();await page.waitForFunction(()=>!document.querySelector('#yu-apply').disabled);assert.equal(await page.locator('#selection-summary').textContent(),'2 layers selected');

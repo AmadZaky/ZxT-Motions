@@ -1,6 +1,6 @@
-/* MotionAstra 3.6.1 — ES3 host. No third-party AE effects required. */
+/* MotionAstra 1.0.0 — ES3 host. No third-party AE effects required. */
 var MotionAstra = (function () {
-  var BUILD = "3.6.1",
+  var BUILD = "1.0.0",
     recipes = {},
     serial = 0;
   for (var ri = 0; ri < MA_PRESET_DATA.presets.length; ri++)
@@ -2705,6 +2705,204 @@ var MotionAstra = (function () {
       .replace(/\n?\[MA_YU\][^\r\n]*\[\/MA_YU\]/, "")
       .replace(/\n?\[MA_FXTOOLS\][^\r\n]*\[\/MA_FXTOOLS\]/, "");
   }
+  // Session clipboard transport is deliberately limited to these layer Transforms.
+  var motionNames = ["ADBE Anchor Point", "ADBE Position", "ADBE Scale", "ADBE Rotate Z", "ADBE Opacity"];
+  function motionDimensions(value) {
+    var i;
+    if (typeof value === "number" && isFinite(value)) return 1;
+    if (Object.prototype.toString.call(value) !== "[object Array]" || (value.length !== 2 && value.length !== 3))
+      fail("Unsupported Transform value.");
+    for (i = 0; i < value.length; i++)
+      if (typeof value[i] !== "number" || !isFinite(value[i])) fail("Invalid Transform value.");
+    return value.length;
+  }
+  function motionType(value) {
+    if (value === KeyframeInterpolationType.LINEAR) return "linear";
+    if (value === KeyframeInterpolationType.BEZIER) return "bezier";
+    if (value === KeyframeInterpolationType.HOLD) return "hold";
+    fail("Unsupported keyframe interpolation.");
+  }
+  function motionNativeType(value) {
+    if (value === "linear") return KeyframeInterpolationType.LINEAR;
+    if (value === "bezier") return KeyframeInterpolationType.BEZIER;
+    if (value === "hold") return KeyframeInterpolationType.HOLD;
+    fail("Invalid motion interpolation.");
+  }
+  function motionEase(values) {
+    var out = [], i;
+    for (i = 0; i < values.length; i++)
+      out.push({speed: Number(values[i].speed), influence: Number(values[i].influence)});
+    return out;
+  }
+  function motionKey(p, k) {
+    var value = p.keyValue(k), spatial = !!p.isSpatial;
+    motionDimensions(value);
+    var result = {
+      time: p.keyTime(k), value: value,
+      inType: motionType(p.keyInInterpolationType(k)), outType: motionType(p.keyOutInterpolationType(k)),
+      inEase: motionEase(p.keyInTemporalEase(k)), outEase: motionEase(p.keyOutTemporalEase(k)),
+      temporalAuto: p.keyTemporalAutoBezier(k), temporalContinuous: p.keyTemporalContinuous(k)
+    };
+    if (spatial) {
+      result.inTangent = p.keyInSpatialTangent(k);
+      result.outTangent = p.keyOutSpatialTangent(k);
+      result.spatialAuto = p.keySpatialAutoBezier(k);
+      result.spatialContinuous = p.keySpatialContinuous(k);
+      result.roving = p.keyRoving(k);
+    }
+    return result;
+  }
+  function copyTransformMotion() {
+    var c = comp(), ls = c.selectedLayers, entries = [], lines = [], earliest = Infinity,
+      i, j, k, p, props, entry, total = 0;
+    if (ls.length !== 1) fail("Select exactly one source layer to Copy Motion.");
+    if (!ls[0].property("ADBE Transform Group")) fail("Source layer has no supported Transform group.");
+    for (i = 0; i < motionNames.length; i++) {
+      try {
+        p = prop(ls[0], motionNames[i]);
+        if (!p) continue;
+        props = [p];
+        if (motionNames[i] === "ADBE Position" && p.dimensionsSeparated) props = positionProps(ls[0]);
+        for (j = 0; j < props.length; j++) {
+          p = props[j];
+          if (!p || !p.numKeys) continue;
+          try {
+            entry = {matchName: motionNames[i], axis: props.length > 1 ? j : -1, spatial: !!p.isSpatial, keys: []};
+            for (k = 1; k <= p.numKeys; k++) entry.keys.push(motionKey(p, k));
+            entry.dimensions = motionDimensions(entry.keys[0].value);
+            entries.push(entry);
+          } catch (readError) { lines.push(motionNames[i] + ": could not copy keyframe metadata; skipped."); }
+        }
+      } catch (propertyError) { lines.push(motionNames[i] + ": unavailable; skipped."); }
+    }
+    if (!entries.length) fail("No supported Transform keyframes to copy.");
+    for (i = 0; i < entries.length; i++) {
+      earliest = Math.min(earliest, entries[i].keys[0].time);
+      total += entries[i].keys.length;
+    }
+    for (i = 0; i < entries.length; i++)
+      for (j = 0; j < entries[i].keys.length; j++) entries[i].keys[j].time -= earliest;
+    var motion = {schema: "zxt-transform-motion-1", properties: entries, keyframes: total};
+    validateTransformMotion(motion);
+    return {ok: true, changed: 0, motion: motion, message: "Motion copied" + (lines.length ? ". " + lines.join(" ") : ""), severity: lines.length ? "warning" : "success"};
+  }
+  function validateTransformMotion(motion) {
+    var i, j, k, entry, key, names = {}, found = false, minimum = Infinity;
+    function list(value) { return Object.prototype.toString.call(value) === "[object Array]"; }
+    function flag(value) { if (typeof value !== "boolean") fail("Invalid motion keyframe flags."); }
+    function ease(value, count) {
+      if (!list(value) || value.length !== count) fail("Invalid motion ease dimensions.");
+      for (var n = 0; n < value.length; n++) {
+        if (typeof value[n].speed !== "number" || !isFinite(value[n].speed) || typeof value[n].influence !== "number") fail("Invalid motion ease.");
+        number(value[n].influence, 0.1, 100);
+      }
+    }
+    if (!motion || motion.schema !== "zxt-transform-motion-1" || !list(motion.properties) || !motion.properties.length)
+      fail("Copy Motion from one animated layer first.");
+    if (motion.properties.length > 7) fail("Invalid Transform motion clipboard.");
+    for (i = 0; i < motion.properties.length; i++) {
+      entry = motion.properties[i]; found = false;
+      for (j = 0; j < motionNames.length; j++) if (entry.matchName === motionNames[j]) found = true;
+      if (!found || !list(entry.keys) || !entry.keys.length) fail("Unsupported motion property.");
+      if (entry.axis !== -1 && (entry.matchName !== "ADBE Position" || (entry.axis !== 0 && entry.axis !== 1 && entry.axis !== 2))) fail("Invalid Position axis.");
+      k = entry.matchName + ":" + entry.axis;
+      if (names[k]) fail("Duplicate motion property.");
+      names[k] = true;
+      flag(entry.spatial);
+      if (entry.dimensions !== 1 && entry.dimensions !== 2 && entry.dimensions !== 3) fail("Invalid motion dimensions.");
+      if ((entry.axis !== -1 || entry.matchName === "ADBE Opacity" || entry.matchName === "ADBE Rotate Z") && (entry.dimensions !== 1 || entry.spatial)) fail("Invalid scalar motion.");
+      if (entry.spatial && entry.dimensions === 1) fail("Invalid spatial motion.");
+      for (j = 0; j < entry.keys.length; j++) {
+        key = entry.keys[j];
+        if (typeof key.time !== "number" || !isFinite(key.time) || key.time < 0 || (j && key.time <= entry.keys[j - 1].time)) fail("Invalid relative motion timing.");
+        minimum = Math.min(minimum, key.time);
+        if (motionDimensions(key.value) !== entry.dimensions) fail("Motion value dimensions changed.");
+        motionNativeType(key.inType); motionNativeType(key.outType);
+        ease(key.inEase, entry.spatial ? 1 : entry.dimensions); ease(key.outEase, entry.spatial ? 1 : entry.dimensions);
+        flag(key.temporalAuto); flag(key.temporalContinuous);
+        if (entry.spatial) {
+          if (motionDimensions(key.inTangent) !== entry.dimensions || motionDimensions(key.outTangent) !== entry.dimensions) fail("Invalid spatial tangents.");
+          flag(key.spatialAuto); flag(key.spatialContinuous); flag(key.roving);
+          if (key.roving && (j === 0 || j === entry.keys.length - 1)) fail("Endpoint keyframes cannot rove.");
+        }
+      }
+    }
+    if (minimum !== 0) fail("Motion must start at relative time zero.");
+    // Do not allow both separated and unified Position in a clipboard.
+    if (names["ADBE Position:-1"] && (names["ADBE Position:0"] || names["ADBE Position:1"] || names["ADBE Position:2"])) fail("Mixed Position representations.");
+  }
+  function pasteTransformMotion(motion) {
+    validateTransformMotion(motion);
+    var c = comp(), ls = selection(c), start = c.time, lines = [], changed = 0,
+      i, j, k, p, entry, oldValue, layerChanged, unsafe = false;
+    if (typeof start !== "number" || !isFinite(start)) fail("Invalid playhead time.");
+    function nativeEase(values) {
+      var out = [], n;
+      for (n = 0; n < values.length; n++) out.push(new KeyframeEase(values[n].speed, values[n].influence));
+      return out;
+    }
+    for (i = 0; i < ls.length; i++) {
+      layerChanged = false;
+      if (ls[i].locked) { lines.push(ls[i].name + ": locked layer skipped."); continue; }
+      for (j = 0; j < motion.properties.length; j++) {
+        entry = motion.properties[j]; p = null;
+        try {
+          p = prop(ls[i], entry.matchName);
+          if (entry.matchName === "ADBE Position") {
+            if (!p || (!!p.dimensionsSeparated !== (entry.axis !== -1))) throw Error("Position representation differs");
+            if (entry.axis !== -1) p = p.getSeparationFollower(entry.axis);
+          }
+          if (!p || p.canVaryOverTime === false || !p.setValueAtTime || !p.removeKey) throw Error("property is not writable");
+          // Never splice into existing animation: insertion can retime roving keys
+          // or recalculate old automatic tangents even without a time collision.
+          if (p.numKeys) throw Error("existing keyframes protected");
+          if (p.expression) throw Error("existing expression protected");
+          oldValue = p.value;
+          if (motionDimensions(oldValue) !== entry.dimensions || !!p.isSpatial !== entry.spatial) throw Error("Transform dimensions/type differ");
+        } catch (targetError) {
+          lines.push(ls[i].name + " / " + entry.matchName + ": " + String(targetError) + "; skipped.");
+          continue;
+        }
+        try {
+          for (k = 0; k < entry.keys.length; k++) p.setValueAtTime(start + entry.keys[k].time, entry.keys[k].value);
+          for (k = 0; k < entry.keys.length; k++) {
+            var key = entry.keys[k], n = k + 1;
+            p.setTemporalAutoBezierAtKey(n, false);
+            p.setTemporalContinuousAtKey(n, false);
+            p.setTemporalEaseAtKey(n, nativeEase(key.inEase), nativeEase(key.outEase));
+            p.setInterpolationTypeAtKey(n, motionNativeType(key.inType), motionNativeType(key.outType));
+            if (entry.spatial) {
+              p.setSpatialAutoBezierAtKey(n, false);
+              p.setSpatialContinuousAtKey(n, false);
+              p.setSpatialTangentsAtKey(n, key.inTangent, key.outTangent);
+              p.setSpatialContinuousAtKey(n, key.spatialContinuous);
+              p.setSpatialAutoBezierAtKey(n, key.spatialAuto);
+            }
+            p.setTemporalContinuousAtKey(n, key.temporalContinuous);
+            p.setTemporalAutoBezierAtKey(n, key.temporalAuto);
+          }
+          if (entry.spatial)
+            for (k = 1; k < entry.keys.length - 1; k++) p.setRovingAtKey(k + 1, entry.keys[k].roving);
+          // Reject native roving recalculation when it changes copied timing.
+          for (k = 0; k < entry.keys.length; k++)
+            if (Math.abs(p.keyTime(k + 1) - start - entry.keys[k].time) > 0.000001) throw Error("native keyframe retiming differs");
+          layerChanged = true;
+        } catch (writeError) {
+          try {
+            for (k = p.numKeys; k > 0; k--) p.removeKey(k);
+            p.setValue(oldValue);
+            lines.push(ls[i].name + " / " + entry.matchName + ": paste failed; original value restored. " + String(writeError));
+          } catch (restoreError) {
+            unsafe = true;
+            lines.push(ls[i].name + " / " + entry.matchName + ": rollback failed. Check the timeline and Undo once.");
+          }
+        }
+      }
+      if (layerChanged) changed++;
+    }
+    return {changed: changed, severity: lines.length ? "warning" : "success", recovery: unsafe,
+      message: "Motion pasted to " + changed + " layer" + (changed === 1 ? "" : "s") + (lines.length ? ". " + lines.join(" ") : "")};
+  }
   function tool(a) {
     var c = comp(),
       ls = c.selectedLayers,
@@ -2939,6 +3137,8 @@ var MotionAstra = (function () {
           nativeEffects: capabilities,
           effectRegistryAvailable: installed.length > 0
         };
+      } else if (a.action === "copyMotion") {
+        result = copyTransformMotion();
       } else if (a.action === "fonts") {
         result = fontList();
       } else if (a.action === "load" || a.action === "reconnect") {
@@ -2982,13 +3182,16 @@ var MotionAstra = (function () {
           update: function () {
             return update(a);
           },
+          pasteMotion: function () {
+            return pasteTransformMotion(a.motion);
+          },
           tool: function () {
             return tool(a);
           }
         };
         if (!routes.hasOwnProperty(a.action))
           fail("Unknown MotionAstra action: " + a.action);
-        app.beginUndoGroup("MotionAstra · " + a.action);
+        app.beginUndoGroup(a.action === "pasteMotion" ? "Paste ZxT Motion" : "MotionAstra · " + a.action);
         undo = true;
         result = routes[a.action]();
         result.ok = true;
@@ -3012,11 +3215,21 @@ var MotionAstra = (function () {
       try {
         app.endUndoGroup();
       } catch (undoError) {
-        result = {
-          ok: false,
-          message:
-            "Could not close Undo group. Check the timeline before retrying."
-        };
+        if (a.action === "pasteMotion") {
+          // Preserve mutation uncertainty in a handled reply, so the panel's
+          // recovery guard cannot lose it through a rejected bridge response.
+          result = {
+            ok: true, changed: result && result.changed ? result.changed : 0,
+            severity: "warning", recovery: true,
+            message: "Could not close Undo group. Check the timeline before retrying; Undo once if needed."
+          };
+        } else {
+          result = {
+            ok: false,
+            message:
+              "Could not close Undo group. Check the timeline before retrying."
+          };
+        }
       }
     }
     return encode(result);
@@ -3034,6 +3247,6 @@ var MotionAstra = (function () {
     throw Error(
       "MotionAstra JSON transport self-check failed. Restart AE and install the full package."
     );
-  return { dispatch: dispatch, version: "3.6.1", build: BUILD };
+  return { dispatch: dispatch, version: "1.0.0", build: BUILD, transformMotionVersion: 1 };
 })();
 if (typeof $ !== "undefined" && $.global) $.global.MotionAstra = MotionAstra;

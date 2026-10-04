@@ -75,6 +75,7 @@ window.MotionAstraSearch = (() => {
       document
         .querySelectorAll("#" + id + " button,#" + id + " label")
         .forEach((node) => {
+          if (node.matches("[data-collection],.favorite-toggle")) return;
           const name = (node.getAttribute("aria-label") || node.textContent)
             .trim()
             .replace(/\s+/g, " ");
@@ -86,6 +87,7 @@ window.MotionAstraSearch = (() => {
             keywords: detail ? detail.querySelector("summary").textContent : "",
             open() {
               api.tab(tab);
+              if (tab === "Create" && node.closest("form") && node.closest("form").hidden) ZxTCollections.setMode("all", "Create");
               let parent = node.parentElement;
               while (parent) {
                 if (parent.tagName === "DETAILS") parent.open = true;

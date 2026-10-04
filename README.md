@@ -1,4 +1,5 @@
-# ZxT-Motions 3.6.0 — Pre-release
+# ZxT-Motions v1.0.0 — Official Release
+
 
 Formerly MotionAstra. Use the new installer after the repository rename.
 
@@ -12,14 +13,14 @@ Download only **Install ZxT-Motions.exe** from the release assets. Close AE, ope
 
 - **Layer Inspector:** expand the selection summary in Quick to see layer names/types, locks, detected core FX, IN/OUT Text Animate phases and native effect names. Load the matching settings from there. Selection is polled every four seconds and on focus; Refresh selection requests it immediately. Host validation always checks the real selection at execution time.
 - **Target-aware actions:** text FX require unlocked text layers; SolidGen only needs an open composition. Update on a loaded instance is disabled after selection changes. Load the new target to continue. Mixed selections apply to valid text layers and report skipped layers.
-- **Animation controls:** parameter badges distinguish **AE keyframes** (Progress and Choice) from **Panel setting**. Enable Manual Progress before animating the native Progress slider. Text Switcher needs Choice slider mode before animating `MA2 choice`. Explicit panel edits to keyed controls add/update a key at the playhead; unrelated updates leave their keys alone. A custom expression must be edited in AE first.
+- **Animation controls:** parameter badges distinguish **AE keyframes** (Progress and Choice). Enable Manual Progress before animating the native Progress slider. Text Switcher needs Choice slider mode before animating `MA2 choice`. Explicit panel edits to keyed controls add/update a key at the playhead; unrelated updates leave their keys alone. A custom expression must be edited in AE first.
 - **Colors and artwork:** unchanged native colors retain keys/expressions. An explicit color edit adds a key at the playhead if already keyed. Version upgrades refresh owned expressions without rebuilding background artwork. Count changes are blocked when rebuilding would erase custom artwork animation. Generate another background to use a different count.
 - **Text Animate:** previews say **Motion**. Apply/Save settings replace the selected IN/OUT phase; custom keys or edited expressions on that phase block replacement. Edit those in AE, or use the explicit Remove animation action first. Other phases and unrelated animators remain intact.
-- **Favorites & Recent:** use ☆ on any core or Text Animate card. All/Favorites/Recent filters apply within the current library/category. The most recent 20 successfully applied/updated presets are saved; failed operations are excluded. Collections stay on this computer and work offline. They are separate from project files.
+- **Favorites & Recent:** use ☆ on any core or Text Animate card. Text, SolidGen and Create have independent All/Favorites/Recent filters, using the same saved collections. Create cards can be favorited and successful layer creation is recorded in Recent. The most recent 20 successfully applied/updated presets are saved; failed operations are excluded. Collections stay on this computer and work offline. They are separate from project files.
 
 ## Studio workspace
 
-Studio keeps Text, Solid, Tools, Curve and Create in one row. At widths below 920 px, Customize opens a separate view; choose **Library** to return. Wider panels keep the library beside the selected preset. Text Tools FX and Text Animate collections can collapse independently. Apply/Update stay above the status area.
+Studio keeps Library, Motion and Create in one row. Text and SolidGen live in Library; Quick Tools and Curve live in Motion. At widths below 760 px, Customize opens a separate view; choose **Back to Library** to return. Wider panels keep the library beside the selected preset. Text Tools FX and Text Animate collections can collapse independently. Apply/Update stay above the status area.
 
 Choose the gear button → **Appearance** to select Orange, Lime Green, Light Blue, Burgundy or Plain White. Use the sun/moon button for dark/light mode. Both choices persist locally and affect only the interface, never preset artwork or AE color values. Search and Quick/Menu collapse controls remain in the header.
 
@@ -36,6 +37,18 @@ Apply/Generate and Update are compact adjacent buttons at the inspector bottom. 
 New FX use one **MotionAstra Progress** parameter controller. Native effects needed to render the artwork remain in Effect Controls. Use **Quick Tools → FX settings → Load selected FX**, search or expand parameter groups, then **Update selected FX**. Updates are bound to the loaded layer; reload if you change selection. Enable Manual Progress to animate the single progress slider.
 
 Existing instances keep their controls. **Compact old controls** converts an unanimated instance; it refuses animated controls and external expression dependencies to protect existing projects. Settings → control layout → Individual keeps separate controls for advanced keyframing.
+
+## Copy / Paste Motion — Transform only
+
+In **Motion → Quick Tools → Copy / Paste Motion**, select exactly one source layer and click **Copy Motion**. Only keyed Anchor Point, Position, Scale, Rotation/Z Rotation and Opacity are captured. Copy does not edit the layer or create an undo step. Effects, expressions, masks, animators, artwork, parenting and layer timing are excluded.
+
+Select one or more targets, put the playhead at the desired start, and click **Paste Motion**. The earliest copied Transform key becomes offset zero; all keys use `CTI + offset` in seconds. Compatible targets receive the same timing without staggering. Separated Position axes require matching separated target Position; dimensions and spatial types must match. There is no conversion between 2D/3D or separated/unified Position.
+
+**Conflict policy:** any destination property already containing keyframes is skipped, even outside the pasted range. Properties with an expression, including disabled expressions, are also skipped. Other empty, compatible properties can still be pasted. This protects old roving timing and automatic tangents as well as time collisions. A failed property paste removes only its new keys and restores its old static value; failed rollback asks you to check the timeline and Undo once.
+
+Paste uses one **Paste ZxT Motion** undo group. Interpolation, ease, spatial tangents and supported continuity/auto-Bezier flags are transferred. Interior spatial roving is retained only if AE keeps the requested relative timing; otherwise that property is restored. Clipboard data is local to the open panel session and disappears on reload. Failed recopy clears the previous buffer. Existing Favorites/Recent lists are not used as a clipboard.
+
+See `docs/TRANSFORM_MOTION_VALIDATION.md` for automated coverage and required native AE checks.
 
 ## Text Animate · by YUGraphic
 

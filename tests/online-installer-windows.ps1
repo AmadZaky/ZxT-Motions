@@ -12,11 +12,12 @@ try {
  if ($LASTEXITCODE -ne 0) { throw 'Fixture packaging failed' }
  $digest='sha256:'+(Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
  $size=(Get-Item $zip).Length
- $asset=@{name="ZxT-Motions_v$version-alpha.zip";browser_download_url="https://github.com/AmadZaky/ZxT-Motions/releases/download/v$version-alpha/ZxT-Motions_v$version-alpha.zip";digest=$digest;size=$size}
- $release=@{tag_name="v$version-alpha";draft=$false;assets=@($asset)}
+ $asset=@{name="ZxT-Motions_v$version.zip";browser_download_url="https://github.com/AmadZaky/ZxT-Motions/releases/download/v$version/ZxT-Motions_v$version.zip";digest=$digest;size=$size}
+ $release=@{tag_name="v$version";draft=$false;prerelease=$false;assets=@($asset)}
  Assert ((Assert-MotionAstraReleaseAsset $release $version).digest -eq $digest) 'Correct metadata rejected'
+ $release.prerelease=$true;Reject { Assert-MotionAstraReleaseAsset $release $version };$release.prerelease=$false
  $asset.browser_download_url='https://example.com/payload.zip';Reject { Assert-MotionAstraReleaseAsset $release $version }
- $asset.browser_download_url="https://github.com/AmadZaky/ZxT-Motions/releases/download/v$version-alpha/ZxT-Motions_v$version-alpha.zip"
+ $asset.browser_download_url="https://github.com/AmadZaky/ZxT-Motions/releases/download/v$version/ZxT-Motions_v$version.zip"
  Reject { Expand-MotionAstraDownload $zip (Join-Path $temp 'bad') ('sha256:'+('0'*64)) $size }
  $payload=Expand-MotionAstraDownload $zip (Join-Path $temp 'good') $digest $size
  . (Join-Path $root 'install-windows.ps1');Assert-MotionAstraPayload $payload

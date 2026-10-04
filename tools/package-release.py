@@ -4,7 +4,7 @@ from pathlib import Path
 import zipfile
 root=Path(__file__).resolve().parent.parent
 version=(root/'VERSION').read_text().strip()
-parser=argparse.ArgumentParser();parser.add_argument('--output',default=str(root/('ZxT-Motions_v'+version+'-alpha.zip')))
+parser=argparse.ArgumentParser();parser.add_argument('--output',default=str(root/('ZxT-Motions_v'+version+'.zip')))
 parser.add_argument('--windows-launcher',type=Path,help='Compiled Windows GUI launcher for release builds')
 args=parser.parse_args();payload={}
 if args.windows_launcher and args.windows_launcher.read_bytes()[:2] != b'MZ': raise ValueError('Windows launcher must be a PE executable')

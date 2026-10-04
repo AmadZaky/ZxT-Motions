@@ -1,8 +1,8 @@
 # Online setup downloads only the version embedded in the EXE, after UI consent.
 function Assert-MotionAstraReleaseAsset($Release,[string]$Version) {
-    $tag='v'+$Version+'-alpha'
-    $name='ZxT-Motions_v'+$Version+'-alpha.zip'
-    if ($Release.tag_name -cne $tag -or $Release.draft) { throw 'Unexpected GitHub release.' }
+    $tag='v'+$Version
+    $name='ZxT-Motions_v'+$Version+'.zip'
+    if ($Release.tag_name -cne $tag -or $Release.draft -or $Release.prerelease) { throw 'Unexpected GitHub release.' }
     $assets=@($Release.assets | Where-Object { $_.name -ceq $name })
     if ($assets.Count -ne 1) { throw 'Release package is not available. Retry later.' }
     $asset=$assets[0]
@@ -42,7 +42,7 @@ function Get-MotionAstraOnlinePayload([string]$Version,[string]$Workspace,[hasht
     if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid embedded setup version.' }
     [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
     $State.Message='Connecting to GitHub...';$State.Percent=2
-    $release=Invoke-RestMethod -Uri ('https://api.github.com/repos/AmadZaky/ZxT-Motions/releases/tags/v'+$Version+'-alpha') -Headers @{'User-Agent'='ZxT-Motions-Setup';'Accept'='application/vnd.github+json'} -TimeoutSec 30
+    $release=Invoke-RestMethod -Uri ('https://api.github.com/repos/AmadZaky/ZxT-Motions/releases/tags/v'+$Version) -Headers @{'User-Agent'='ZxT-Motions-Setup';'Accept'='application/vnd.github+json'} -TimeoutSec 30
     $asset=Assert-MotionAstraReleaseAsset $release $Version
     $State.Message='Downloading ZxT-Motions from GitHub...';$State.Percent=5
     $zip=Join-Path $Workspace 'package.zip'
