@@ -5,6 +5,7 @@
     bridge = window.MotionAstraBridge;
   const state = {
       tab: "Text",
+      motionClipboard: null,
       preset: null,
       params: {},
       busy: false,
@@ -71,6 +72,8 @@
     document
       .querySelectorAll("[data-host]")
       .forEach((b) => (b.disabled = value || !bridge.isReady()));
+    $("paste-motion").disabled = $("paste-motion").disabled || !state.motionClipboard;
+    $("paste-motion").title = state.motionClipboard ? "Paste at the playhead; animated target properties are skipped." : "Copy Motion from one animated layer first.";
     $("apply").disabled = $("apply").disabled || state.invalid.size > 0;
     $("compact-fx").disabled =
       $("compact-fx").disabled ||
@@ -144,7 +147,7 @@
     busy(state.busy);
   }
   function mutates(payload) {
-    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
+    return ["apply","update","generateBackground","tool","compact","pasteMotion"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
   }
   async function action(payload) {
     if (state.busy || (state.recovery && mutates(payload))) return null;
@@ -165,7 +168,8 @@
         if (["apply", "update", "generateBackground"].includes(payload.action)) ZxTCollections.record("core:" + payload.id);
         if (payload.action === "yuText" && payload.operation === "apply") ZxTCollections.record("yu:" + payload.id);
       }
-      if (r.changed > 0 && r.severity === "warning") state.recovery = true;
+      if (r.changed > 0 && r.severity === "warning" && (payload.action !== "pasteMotion" || r.recovery)) state.recovery = true;
+      if (payload.action === "pasteMotion" && r.recovery) state.recovery = true;
       if (r.message) notice(r.message, r.severity || "success");
       return r;
     } catch (e) {
@@ -619,6 +623,25 @@
         if (!state.busy) tab(b.dataset.tab);
       }),
   );
+  $("copy-motion").onclick = async () => {
+    if (state.busy || state.recovery) return;
+    // A failed recopy must not leave a stale buffer ready for accidental Paste.
+    state.motionClipboard = null;
+    $("motion-clipboard").textContent = "Copy Transform keyframes from one layer first. Paste starts at the playhead.";
+    const result = await action({action: "copyMotion"});
+    if (result && result.motion) {
+      state.motionClipboard = result.motion;
+      $("motion-clipboard").textContent = `${result.motion.properties.length} properties · ${result.motion.keyframes} keyframes ready. Paste starts at the playhead.`;
+    }
+    busy(state.busy);
+  };
+  $("paste-motion").onclick = () => {
+    if (!state.motionClipboard) {
+      notice("Copy Motion from one animated layer first.", "info");
+      return;
+    }
+    return action({action: "pasteMotion", motion: state.motionClipboard});
+  };
   const glyphs = ["↖", "↑", "↗", "←", "·", "→", "↙", "↓", "↘"];
   glyphs.forEach((g, i) => {
     const b = el("button", "", g);

@@ -72,7 +72,7 @@ jobs:
           python tests/package.py
       - name: Verify host tests
         run: |
-          for test in static engine expressions bridge tools create-tools font-sources checkboxes parser-boundary update-target background-create fx-target panel-state background-stability preview-idle loop-modes background-colors loop-migration features-282 compact-controls switcher-choice yu-text motion-curve fx-tools module-isolation smart-apply bridge-lifecycle glass-surface fxtools-native-contract selection-context animation-preservation collections official-collections; do
+          for test in static engine expressions bridge tools create-tools font-sources checkboxes parser-boundary update-target background-create fx-target panel-state background-stability preview-idle loop-modes background-colors loop-migration features-282 compact-controls switcher-choice yu-text motion-curve fx-tools module-isolation smart-apply bridge-lifecycle glass-surface fxtools-native-contract selection-context animation-preservation collections official-collections transform-motion; do
             node "tests/$test.cjs"
           done
       - name: Verify browser workflow
@@ -81,6 +81,7 @@ jobs:
           npx playwright install chromium
           node tests/reliability-ui.cjs
           node tests/official-cleanup-ui.cjs
+          node tests/transform-motion-ui.cjs
           node tests/studio-ui.cjs
           node tests/studio-binding.cjs
           node tests/studio-workflow-ui.cjs

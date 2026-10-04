@@ -141,7 +141,7 @@
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function"){' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==1){' +
         "var data=File(" +
         JSON.stringify(path + "/jsx/presets-data.jsx") +
         ");" +
@@ -155,7 +155,7 @@
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function")' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==1)' +
         'throw Error("Host initialization failed or an old host is still installed.");}' +
         "var output=host.dispatch(" +
         JSON.stringify(encodeURIComponent('{"action":"status"}')) +

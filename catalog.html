@@ -734,8 +734,17 @@ ZxT-Motions</textarea
           <div class="eyebrow">EVERYDAY CONTROLS</div>
           <h1>Quick Tools</h1>
           <p>
-            Tools operate on selected layers. Every action has one Undo step.
+            Tools operate on selected layers. Edits use one Undo step; Copy Motion only reads keyframes.
           </p>
+          <details id="transform-motion" open>
+            <summary><i data-lucide="copy"></i>Copy / Paste Motion</summary>
+            <div class="button-grid">
+              <button id="copy-motion" type="button" data-host>Copy Motion</button>
+              <button id="paste-motion" type="button" data-host disabled>Paste Motion</button>
+            </div>
+            <p id="motion-clipboard" class="hint" role="status">Copy Transform keyframes from one layer first. Paste starts at the playhead.</p>
+            <p class="hint">Transform only. Existing target keyframes and expressions are protected; those properties are skipped.</p>
+          </details>
           <details id="tweaker" open>
             <summary>FX settings</summary>
             <p>
@@ -7273,7 +7282,7 @@ document.addEventListener('visibilitychange',run);return {attach,play,clear,rend
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function"){' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==1){' +
         "var data=File(" +
         JSON.stringify(path + "/jsx/presets-data.jsx") +
         ");" +
@@ -7287,7 +7296,7 @@ document.addEventListener('visibilitychange',run);return {attach,play,clear,rend
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function")' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==1)' +
         'throw Error("Host initialization failed or an old host is still installed.");}' +
         "var output=host.dispatch(" +
         JSON.stringify(encodeURIComponent('{"action":"status"}')) +
@@ -8670,6 +8679,7 @@ window.ZxTWorkspace = (() => {
     bridge = window.MotionAstraBridge;
   const state = {
       tab: "Text",
+      motionClipboard: null,
       preset: null,
       params: {},
       busy: false,
@@ -8736,6 +8746,8 @@ window.ZxTWorkspace = (() => {
     document
       .querySelectorAll("[data-host]")
       .forEach((b) => (b.disabled = value || !bridge.isReady()));
+    $("paste-motion").disabled = $("paste-motion").disabled || !state.motionClipboard;
+    $("paste-motion").title = state.motionClipboard ? "Paste at the playhead; animated target properties are skipped." : "Copy Motion from one animated layer first.";
     $("apply").disabled = $("apply").disabled || state.invalid.size > 0;
     $("compact-fx").disabled =
       $("compact-fx").disabled ||
@@ -8809,7 +8821,7 @@ window.ZxTWorkspace = (() => {
     busy(state.busy);
   }
   function mutates(payload) {
-    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
+    return ["apply","update","generateBackground","tool","compact","pasteMotion"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
   }
   async function action(payload) {
     if (state.busy || (state.recovery && mutates(payload))) return null;
@@ -8830,7 +8842,8 @@ window.ZxTWorkspace = (() => {
         if (["apply", "update", "generateBackground"].includes(payload.action)) ZxTCollections.record("core:" + payload.id);
         if (payload.action === "yuText" && payload.operation === "apply") ZxTCollections.record("yu:" + payload.id);
       }
-      if (r.changed > 0 && r.severity === "warning") state.recovery = true;
+      if (r.changed > 0 && r.severity === "warning" && (payload.action !== "pasteMotion" || r.recovery)) state.recovery = true;
+      if (payload.action === "pasteMotion" && r.recovery) state.recovery = true;
       if (r.message) notice(r.message, r.severity || "success");
       return r;
     } catch (e) {
@@ -9284,6 +9297,25 @@ window.ZxTWorkspace = (() => {
         if (!state.busy) tab(b.dataset.tab);
       }),
   );
+  $("copy-motion").onclick = async () => {
+    if (state.busy || state.recovery) return;
+    // A failed recopy must not leave a stale buffer ready for accidental Paste.
+    state.motionClipboard = null;
+    $("motion-clipboard").textContent = "Copy Transform keyframes from one layer first. Paste starts at the playhead.";
+    const result = await action({action: "copyMotion"});
+    if (result && result.motion) {
+      state.motionClipboard = result.motion;
+      $("motion-clipboard").textContent = `${result.motion.properties.length} properties · ${result.motion.keyframes} keyframes ready. Paste starts at the playhead.`;
+    }
+    busy(state.busy);
+  };
+  $("paste-motion").onclick = () => {
+    if (!state.motionClipboard) {
+      notice("Copy Motion from one animated layer first.", "info");
+      return;
+    }
+    return action({action: "pasteMotion", motion: state.motionClipboard});
+  };
   const glyphs = ["↖", "↑", "↗", "←", "·", "→", "↙", "↓", "↘"];
   glyphs.forEach((g, i) => {
     const b = el("button", "", g);
