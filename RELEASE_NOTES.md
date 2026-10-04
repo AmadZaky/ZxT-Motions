@@ -1,3 +1,14 @@
+# ZxT-Motions v1.0.0 — Official Release (Windows only)
+
+- Moves All / Favorites / Recent out of Quick Tools into Text, SolidGen and Create. Each tab filters only its own items; existing Favorites and Recent storage stays compatible.
+- Removes repeated Panel Settings labels from Inspector controls. Parameters, AE keyframes badges and FX behavior stay unchanged.
+- Removes Text Appearance and Keyframe Easing from Tools. All other tools, presets and animation engines are preserved.
+- Preserves Studio layouts, themes and accents, Apply/Update workflow, search and saved collections.
+
+This source carries the requested Official Release identity. Publication remains gated on release-candidate validation in After Effects 2025; browser and host-model checks do not replace native rendering, docking, Undo/Redo and installer validation.
+
+## Previous Studio work
+
 # ZxT-Motions v3.6.1 — Studio Workflow Pre-release (Windows only)
 
 - Replaces the five primary tabs with Library / Motion / Create. Text and SolidGen live in Library; Quick Tools and Curve live in Motion.

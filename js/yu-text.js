@@ -225,7 +225,7 @@ window.MotionAstraYUUI = (() => {
         (p) =>
           (cat === "All" || p.category === cat) &&
           `${p.name} ${p.category}`.toLowerCase().includes(q),
-      ), p => "yu:" + p.id);
+      ), p => "yu:" + p.id, "Text");
     $("yu-count").textContent = list.length + " presets";
     list.forEach((p) => {
       const card = node("article", "yu-card"),
@@ -255,7 +255,7 @@ window.MotionAstraYUUI = (() => {
       $("yu-cards").appendChild(card);
     });
     if (!list.length)
-      $("yu-cards").appendChild(node("p", "", ZxTCollections.empty()));
+      $("yu-cards").appendChild(node("p", "", ZxTCollections.empty("Text")));
   }
   function saveDraft() {
     if (draftKey) drafts[draftKey] = {options:values(),loaded:loadedInstance,dirty:dirty};

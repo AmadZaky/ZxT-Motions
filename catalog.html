@@ -215,9 +215,9 @@ nav,#quick{background:var(--panel)}
 #text-tools-group{background:transparent;border-color:var(--line)}
 .create-card h2 svg{color:var(--accent)}
 /* v3.6 context and collections occupy layout space; never cover controls. */
-#collection-filters{display:flex;gap:4px;padding:4px 10px}
-#collection-filters button{font-size:11px;padding:4px 10px;min-height:26px}
-#collection-filters [aria-pressed=true]{background:var(--accent-fill);color:var(--on-accent)}
+.collection-filters{display:flex;flex-wrap:wrap;gap:5px;padding:4px 10px;margin:8px 0 12px}
+.collection-filters button{font-size:11px;padding:4px 10px;min-height:26px}
+.collection-filters [aria-pressed=true]{background:var(--accent-fill);color:var(--on-accent)}
 #selected-layer-inspector{margin:2px 10px 6px;font-size:11px;min-width:0}
 #selected-layer-inspector>summary{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:5px 0;color:var(--muted)}
 #selection-content{max-height:140px;overflow:auto;overflow-wrap:anywhere}
@@ -270,13 +270,17 @@ nav,#quick{background:var(--panel)}
   #workspace > #inspector, #workspace > #yu-editor { width:100%; flex:1; }
 }
 [hidden] { display:none !important; }
+
+#create .create-card { position:relative; }
+#create .favorite-toggle { position:static; float:right; margin:0 0 6px 8px; }
+.brand b { max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
   </head>
   <body class="catalog">
     <header>
       <a class="brand" href="index.html"
         ><span class="brand-icon"><i data-lucide="asterisk"></i></span
-        >ZxT-Motions <b>3.6.1</b></a
+        >ZxT-Motions <b>v1.0.0</b></a
       >
       <div class="header-actions">
         <button data-tab="Settings" aria-label="Settings" title="Appearance and settings"><i data-lucide="settings"></i></button>
@@ -333,7 +337,6 @@ nav,#quick{background:var(--panel)}
         ><button id="load-fx" data-host>
           <i data-lucide="sliders-horizontal"></i>Load settings</button>
       </div>
-      <div id="collection-filters" role="group" aria-label="Preset collection"><button data-collection="all" aria-pressed="true">All</button><button data-collection="favorites" aria-pressed="false">Favorites</button><button data-collection="recent" aria-pressed="false">Recent</button></div>
       <details id="selected-layer-inspector"><summary id="selection-summary">Layer Inspector</summary><div id="selection-content"></div><button id="selection-refresh" data-host>Refresh selection</button></details>
     </div>
     <div id="workspace">
@@ -343,6 +346,8 @@ nav,#quick{background:var(--panel)}
           <div class="eyebrow">START WITH SOMETHING SIMPLE</div>
           <h1>Create</h1>
           <p>Native, editable layers in your active composition.</p>
+          <div class="collection-filters" data-collection-scope="Create" role="group" aria-label="Create collection"><button type="button" data-collection="all" aria-pressed="true">All</button><button type="button" data-collection="favorites" aria-pressed="false">Favorites</button><button type="button" data-collection="recent" aria-pressed="false">Recent</button></div>
+          <p id="create-empty" class="empty" hidden></p>
           <div class="create-grid">
             <form id="create-text" class="create-card">
               <h2><i data-lucide="type"></i> Text</h2>
@@ -511,6 +516,7 @@ ZxT-Motions</textarea
           <div class="eyebrow" id="library-kicker">TEXT TOOLS FX</div>
           <h1 id="library-title">Words in motion.</h1>
           <p id="library-help">Select a text layer before applying FX.</p>
+          <div class="collection-filters" data-collection-scope="Solid" role="group" aria-label="Solid collection"><button type="button" data-collection="all" aria-pressed="true">All</button><button type="button" data-collection="favorites" aria-pressed="false">Favorites</button><button type="button" data-collection="recent" aria-pressed="false">Recent</button></div>
           <div id="cards"></div>
         </section>
         <section id="motion-curve" hidden aria-label="Motion Curve">
@@ -635,6 +641,7 @@ ZxT-Motions</textarea
             </div>
           </div>
           <div id="yu-browser">
+            <div class="collection-filters" data-collection-scope="Text" role="group" aria-label="Text collection"><button type="button" data-collection="all" aria-pressed="true">All</button><button type="button" data-collection="favorites" aria-pressed="false">Favorites</button><button type="button" data-collection="recent" aria-pressed="false">Recent</button></div>
             <div class="yu-filters">
               <label for="yu-category">Animation category</label>
               <select id="yu-category" aria-label="Animation category"></select>
@@ -650,7 +657,7 @@ ZxT-Motions</textarea
             <div class="yu-edit-scroll">
               <button id="yu-back">← Library</button>
               <h2 id="yu-title"></h2>
-              <p id="yu-target"></p><p id="yu-selection-guidance" class="target-guidance" role="status"></p><p class="animation-settings-guide">Panel settings apply on Apply/Save. Animate in AE with native text animators. A phase with custom keyframes or expressions is protected from replacement.</p>
+              <p id="yu-target"></p><p id="yu-selection-guidance" class="target-guidance" role="status"></p><p class="animation-settings-guide">Settings apply on Apply/Save. Animate in AE with native text animators. A phase with custom keyframes or expressions is protected from replacement.</p>
               <canvas
                 id="yu-preview"
                 width="600"
@@ -879,50 +886,6 @@ ZxT-Motions</textarea
               parent was animated.
             </p>
           </details>
-          <details>
-            <summary><i data-lucide="activity"></i>Keyframe easing</summary>
-            <p>Select timeline keyframes before using these buttons.</p>
-            <label
-              >Influence · %<input
-                id="ease-strength"
-                type="number"
-                value="75"
-                min="1"
-                max="100"
-            /></label>
-            <div class="button-grid">
-              <button data-ease="in" data-host>Ease in</button
-              ><button data-ease="out" data-host>Ease out</button
-              ><button data-ease="both" data-host>Easy Ease</button
-              ><button data-ease="linear" data-host>Linear</button>
-            </div>
-          </details>
-          <details>
-            <summary><i data-lucide="type"></i>Text appearance</summary>
-            <p>
-              Changes the underlying text style, including counters and
-              switchers.
-            </p>
-            <div class="row">
-              <label
-                >Size · px<input
-                  id="text-size"
-                  type="number"
-                  value="100"
-                  min="1"
-                  max="1000" /></label
-              ><label
-                >Fill<input id="text-color" type="color" value="#ffffff"
-              /></label>
-            </div>
-            <label
-              >Paragraph alignment<select id="text-align">
-                <option value="left">Left</option>
-                <option value="center">Center</option>
-                <option value="right">Right</option>
-              </select></label
-            ><button id="text-style" data-host>Apply text style</button>
-          </details>
           <details open>
             <summary><i data-lucide="eraser"></i>Remove effects</summary>
             <p>Removes effects only from selected unlocked layers.</p>
@@ -986,6 +949,7 @@ ZxT-Motions</textarea
             ></textarea
             ><a href="catalog.html">Open preview catalog ↗</a>
             <p>
+              ZxT-Motions v1.0.0 · Official Release.
               All panel assets are local. Browser mode offers previews; Apply
               and tools require After Effects.
             </p>
@@ -2378,7 +2342,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 </script>
     <script>
 window.MA_PRESETS = {
-  "version": "3.6.1",
+  "version": "1.0.0",
   "presets": [
     {
       "id": "counter",
@@ -7166,14 +7130,14 @@ document.addEventListener('visibilitychange',run);return {attach,play,clear,rend
 
 </script>
     <script>
-/* MotionAstra CEP transport v3.6.1.
+/* MotionAstra CEP transport v1.0.0.
  * Host files load by absolute path; all replies are tagged and request-correlated.
  * Empty callbacks recover the stored reply, NEVER replay the host mutation.
  */
 (function (root) {
   "use strict";
-  const VERSION = "3.6.1";
-  const BUILD = "3.6.1";
+  const VERSION = "1.0.0";
+  const BUILD = "1.0.0";
   const PREFIX = "MAFX1:";
   const ERROR_PREFIX = "MAFX1E:";
   const available = !!root.__adobe_cep__;
@@ -7903,7 +7867,7 @@ window.MotionAstraYUUI = (() => {
         (p) =>
           (cat === "All" || p.category === cat) &&
           `${p.name} ${p.category}`.toLowerCase().includes(q),
-      ), p => "yu:" + p.id);
+      ), p => "yu:" + p.id, "Text");
     $("yu-count").textContent = list.length + " presets";
     list.forEach((p) => {
       const card = node("article", "yu-card"),
@@ -7933,7 +7897,7 @@ window.MotionAstraYUUI = (() => {
       $("yu-cards").appendChild(card);
     });
     if (!list.length)
-      $("yu-cards").appendChild(node("p", "", ZxTCollections.empty()));
+      $("yu-cards").appendChild(node("p", "", ZxTCollections.empty("Text")));
   }
   function saveDraft() {
     if (draftKey) drafts[draftKey] = {options:values(),loaded:loadedInstance,dirty:dirty};
@@ -8309,6 +8273,8 @@ window.MotionAstraCreate = (() => {
         background: true,
       });
     const result = await api.action(payload);
+    if (result && result.changed > 0 && window.ZxTCollections)
+      ZxTCollections.record("create:" + ({newText:"text",newShape:"shape",newSolid:"solid"})[kind]);
     if (kind === "newSolid" && result && result.changed)
       remember(payload.color);
   }
@@ -8325,7 +8291,36 @@ window.MotionAstraCreate = (() => {
     $("new-shape-sides").disabled =
       value || $("new-shape-type").value !== "polygon";
   }
+  const items = [
+    {id:'text',form:'create-text',name:'Create Text'},
+    {id:'shape',form:'create-shape',name:'Create Shape'},
+    {id:'solid',form:'create-background',name:'Create Background'}
+  ];
+  function refreshCollection() {
+    if (!window.ZxTCollections) return;
+    const visible = ZxTCollections.filter(items, item => 'create:' + item.id, 'Create');
+    items.forEach(item => {
+      const form = $(item.form);
+      form.hidden = !visible.includes(item);
+      let star = form.querySelector('.favorite-toggle');
+      if (!star) {
+        star = ZxTCollections.button('create:' + item.id, item.name);
+        form.prepend(star);
+      }
+      const favorite = ZxTCollections.isFavorite('create:' + item.id);
+      star.textContent = favorite ? '★' : '☆';
+      star.setAttribute('aria-pressed', String(favorite));
+    });
+    // Reorder existing forms without recreating controls or losing drafts.
+    const grid = document.querySelector('#create .create-grid');
+    const current = Array.from(grid.children).filter(form => !form.hidden);
+    if (visible.some((item, i) => current[i] !== $(item.form)))
+      visible.forEach(item => grid.appendChild($(item.form)));
+    $('create-empty').hidden = visible.length > 0;
+    $('create-empty').textContent = ZxTCollections.empty('Create');
+  }
   function activate() {
+    refreshCollection();
     if (api && !loaded) loadFonts();
   }
   function init(options) {
@@ -8372,7 +8367,7 @@ window.MotionAstraCreate = (() => {
       $(id).onsubmit = (e) => submit(e, kind);
     });
   }
-  return { init, activate, setBusy };
+  return { init, activate, setBusy, refreshCollection };
 })();
 
 </script>
@@ -8454,6 +8449,7 @@ window.MotionAstraSearch = (() => {
       document
         .querySelectorAll("#" + id + " button,#" + id + " label")
         .forEach((node) => {
+          if (node.matches("[data-collection],.favorite-toggle")) return;
           const name = (node.getAttribute("aria-label") || node.textContent)
             .trim()
             .replace(/\s+/g, " ");
@@ -8465,6 +8461,7 @@ window.MotionAstraSearch = (() => {
             keywords: detail ? detail.querySelector("summary").textContent : "",
             open() {
               api.tab(tab);
+              if (tab === "Create" && node.closest("form") && node.closest("form").hidden) ZxTCollections.setMode("all", "Create");
               let parent = node.parentElement;
               while (parent) {
                 if (parent.tagName === "DETAILS") parent.open = true;
@@ -8580,9 +8577,11 @@ window.ZxTCollections = (() => {
   'use strict';
   const key = 'zxt-collections-v1', known = new Set([
     ...window.MA_PRESETS.presets.map(p => 'core:' + p.id),
-    ...window.YTMCore.presets.map(p => 'yu:' + p.id)
+    ...window.YTMCore.presets.map(p => 'yu:' + p.id),
+    'create:text', 'create:shape', 'create:solid'
   ]), listeners = [];
-  let mode = 'all', saved = {};
+  const modes = {global:'all', Text:'all', Solid:'all', Create:'all'};
+  let saved = {};
   try { saved = JSON.parse(localStorage.getItem(key)) || {}; } catch (_) {}
   const clean = (a, limit) => Array.isArray(a) ? [...new Set(a.filter(k => known.has(k)))].slice(0, limit) : [];
   let favorites = clean(saved.favorites, known.size), recent = clean(saved.recent, 20);
@@ -8591,26 +8590,28 @@ window.ZxTCollections = (() => {
     listeners.forEach(fn => fn());
   }
   return {
-    get mode() { return mode; },
+    get mode() { return modes.global; },
+    getMode(scope = "global") { return modes[scope] || "all"; },
     isFavorite(k) { return favorites.includes(k); },
     toggle(k) { if (!known.has(k)) return; favorites = favorites.includes(k) ? favorites.filter(v => v !== k) : [...favorites, k]; emit(true); },
     record(k) { if (!known.has(k)) return; recent = [k, ...recent.filter(v => v !== k)].slice(0, 20); emit(true); },
-    setMode(value) { if (!['all','favorites','recent'].includes(value)) return; mode = value; emit(false); },
+    setMode(value, scope = 'global') { if (!['all','favorites','recent'].includes(value) || !(scope in modes)) return; modes[scope] = value; emit(false); },
     subscribe(fn) { listeners.push(fn); },
-    filter(items, id) {
+    filter(items, id, scope = "global") {
+      const mode = this.getMode(scope);
       if (mode === 'all') return items;
       const keys = mode === 'favorites' ? favorites : recent;
       const result = items.filter(p => keys.includes(id(p)));
       return mode === 'recent' ? result.sort((a,b) => keys.indexOf(id(a)) - keys.indexOf(id(b))) : result;
     },
     button(k, name) {
-      const b = document.createElement('button'); b.className = 'favorite-toggle';
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'favorite-toggle';
       b.textContent = favorites.includes(k) ? '★' : '☆';
       b.setAttribute('aria-pressed', String(favorites.includes(k)));
       b.setAttribute('aria-label', 'Favorite ' + name); b.title = 'Favorite ' + name;
       b.onclick = () => this.toggle(k); return b;
     },
-    empty() { return mode === 'favorites' ? 'No favorites here yet. Use ☆ on a preset to save it.' : mode === 'recent' ? 'No recently applied presets in this category.' : 'No matching presets.'; }
+    empty(scope = 'global') { const mode = this.getMode(scope); return mode === 'favorites' ? 'No favorites here yet. Use ☆ on a preset to save it.' : mode === 'recent' ? 'No recently applied presets in this category.' : 'No matching presets.'; }
   };
 })();
 
@@ -8867,7 +8868,7 @@ window.ZxTWorkspace = (() => {
     if (name === "Text") name = "YU";
     state.tab = name;
     if (window.ZxTWorkspace) ZxTWorkspace.navigate(name);
-    $("collection-filters").hidden = !["YU", "Background"].includes(name);
+    document.querySelector('[data-collection-scope="Solid"]').hidden = name !== "Background";
     close();
     $("library").hidden = !["YU", "Background"].includes(name);
     if (name === "YU") $("text-tools-group").appendChild($("library"));
@@ -8908,7 +8909,7 @@ window.ZxTWorkspace = (() => {
       (p) =>
         p.category === (state.tab === "YU" ? "Text" : state.tab) &&
         `${p.name} ${p.description}`.toLowerCase().includes(state.query),
-    ), p => "core:" + p.id);
+    ), p => "core:" + p.id, state.tab === "YU" ? "Text" : "Solid");
     list.forEach((p, i) => {
       const article = el("article", "card"),
         view = el("button", "card-preview"),
@@ -8945,7 +8946,7 @@ window.ZxTWorkspace = (() => {
       article.onfocusout = () => MotionPreview.play(canvas, false);
     });
     if (!list.length)
-      $("cards").appendChild(el("p", "empty", ZxTCollections.empty()));
+      $("cards").appendChild(el("p", "empty", ZxTCollections.empty(state.tab === "YU" ? "Text" : "Solid")));
     busy(state.busy);
   }
   function preview() {
@@ -9000,7 +9001,7 @@ window.ZxTWorkspace = (() => {
       input.id = "param-" + d.id;
       label.htmlFor = input.id;
       const live = d.id === "progress" || d.id === "choice";
-      label.appendChild(el("small", "control-kind", live ? "AE keyframes" : "Panel setting"));
+      if (live) label.appendChild(el("small", "control-kind", "AE keyframes"));
       if (live) label.title = d.id === "choice" ? "Enable Choice slider mode. Animate MA2 choice in AE; explicit panel edits add a key at the playhead when already animated." : "Enable manual Progress. Animate the native Progress slider in AE; explicit panel edits add a key at the playhead when already animated.";
       row.dataset.search = (d.label + " " + d.group).toLowerCase();
       row.appendChild(label);
@@ -9151,7 +9152,7 @@ window.ZxTWorkspace = (() => {
       (p.id === "switcher"
         ? "Choice slider mode: animate MA2 choice in AE Effect Controls (1 = first phrase). Panel changes take effect on Update. Automatic mode ignores Choice. "
         : "") +
-      "Animation starts at the layer in-point. Drag [FX End] to retime; Loop mode: None, Ping-Pong, Cycle or Continue. Static backgrounds freeze at the start. Use FX Tweaker for settings. Compact mode keeps one Progress controller; enable manual Progress to animate it. Panel settings apply on Update. Unchanged animated colors and sliders are preserved. Editing an animated value adds a key at the playhead. Count rebuilds artwork only when it has no custom animation.";
+      "Animation starts at the layer in-point. Drag [FX End] to retime; Loop mode: None, Ping-Pong, Cycle or Continue. Static backgrounds freeze at the start. Use FX Tweaker for settings. Compact mode keeps one Progress controller; enable manual Progress to animate it. Settings apply on Update. Unchanged animated colors and sliders are preserved. Editing an animated value adds a key at the playhead. Count rebuilds artwork only when it has no custom animation.";
     document.querySelector(".inspector-scroll").scrollTop = 0;
     $("inspector").scrollTop = 0;
     $("close").focus();
@@ -9312,14 +9313,6 @@ window.ZxTWorkspace = (() => {
     .forEach(
       (b) => (b.onclick = () => tool("arrange", { mode: b.dataset.order })),
     );
-  document.querySelectorAll("[data-ease]").forEach(
-    (b) =>
-      (b.onclick = () =>
-        tool("ease", {
-          mode: b.dataset.ease,
-          strength: Number($("ease-strength").value),
-        })),
-  );
   document
     .querySelectorAll("[data-align]")
     .forEach(
@@ -9340,12 +9333,6 @@ window.ZxTWorkspace = (() => {
       x: Number($("offset-x").value),
       y: Number($("offset-y").value),
       z: Number($("offset-z").value),
-    });
-  $("text-style").onclick = () =>
-    tool("style", {
-      size: Number($("text-size").value),
-      color: $("text-color").value,
-      align: $("text-align").value,
     });
   function review(name) {
     pendingRemove = name;
@@ -9450,11 +9437,12 @@ window.ZxTWorkspace = (() => {
     loadAnimation: phase => { tab("YU"); return window.MotionAstraYUUI.load(phase); }
   });
   if (window.ZxTCollections) {
-    document.querySelectorAll("[data-collection]").forEach(b => b.onclick = () => ZxTCollections.setMode(b.dataset.collection));
+    document.querySelectorAll("[data-collection]").forEach(b => b.onclick = () => ZxTCollections.setMode(b.dataset.collection, b.closest("[data-collection-scope]").dataset.collectionScope));
     ZxTCollections.subscribe(() => {
-      document.querySelectorAll("[data-collection]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.collection === ZxTCollections.mode)));
+      document.querySelectorAll("[data-collection]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.collection === ZxTCollections.getMode(b.closest("[data-collection-scope]").dataset.collectionScope))));
       if (["YU", "Background"].includes(state.tab)) render();
       if (window.MotionAstraYUUI) window.MotionAstraYUUI.refreshCollection();
+      if (window.MotionAstraCreate) window.MotionAstraCreate.refreshCollection();
       busy(state.busy);
     });
   }

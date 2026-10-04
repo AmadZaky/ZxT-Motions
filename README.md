@@ -1,4 +1,6 @@
-# ZxT-Motions 3.6.0 — Pre-release
+# ZxT-Motions v1.0.0 — Official Release
+
+**Release-candidate validation:** v1.0.0 carries the Official Release identity but has not been published yet. Use the validation ZIP for local testing. The existing online release workflow still targets Alpha assets; a v1.0.0 EXE must not be distributed before its matching assets and native AE validation are ready.
 
 Formerly MotionAstra. Use the new installer after the repository rename.
 
@@ -12,14 +14,14 @@ Download only **Install ZxT-Motions.exe** from the release assets. Close AE, ope
 
 - **Layer Inspector:** expand the selection summary in Quick to see layer names/types, locks, detected core FX, IN/OUT Text Animate phases and native effect names. Load the matching settings from there. Selection is polled every four seconds and on focus; Refresh selection requests it immediately. Host validation always checks the real selection at execution time.
 - **Target-aware actions:** text FX require unlocked text layers; SolidGen only needs an open composition. Update on a loaded instance is disabled after selection changes. Load the new target to continue. Mixed selections apply to valid text layers and report skipped layers.
-- **Animation controls:** parameter badges distinguish **AE keyframes** (Progress and Choice) from **Panel setting**. Enable Manual Progress before animating the native Progress slider. Text Switcher needs Choice slider mode before animating `MA2 choice`. Explicit panel edits to keyed controls add/update a key at the playhead; unrelated updates leave their keys alone. A custom expression must be edited in AE first.
+- **Animation controls:** parameter badges distinguish **AE keyframes** (Progress and Choice). Enable Manual Progress before animating the native Progress slider. Text Switcher needs Choice slider mode before animating `MA2 choice`. Explicit panel edits to keyed controls add/update a key at the playhead; unrelated updates leave their keys alone. A custom expression must be edited in AE first.
 - **Colors and artwork:** unchanged native colors retain keys/expressions. An explicit color edit adds a key at the playhead if already keyed. Version upgrades refresh owned expressions without rebuilding background artwork. Count changes are blocked when rebuilding would erase custom artwork animation. Generate another background to use a different count.
 - **Text Animate:** previews say **Motion**. Apply/Save settings replace the selected IN/OUT phase; custom keys or edited expressions on that phase block replacement. Edit those in AE, or use the explicit Remove animation action first. Other phases and unrelated animators remain intact.
-- **Favorites & Recent:** use ☆ on any core or Text Animate card. All/Favorites/Recent filters apply within the current library/category. The most recent 20 successfully applied/updated presets are saved; failed operations are excluded. Collections stay on this computer and work offline. They are separate from project files.
+- **Favorites & Recent:** use ☆ on any core or Text Animate card. Text, SolidGen and Create have independent All/Favorites/Recent filters, using the same saved collections. Create cards can be favorited and successful layer creation is recorded in Recent. The most recent 20 successfully applied/updated presets are saved; failed operations are excluded. Collections stay on this computer and work offline. They are separate from project files.
 
 ## Studio workspace
 
-Studio keeps Text, Solid, Tools, Curve and Create in one row. At widths below 920 px, Customize opens a separate view; choose **Library** to return. Wider panels keep the library beside the selected preset. Text Tools FX and Text Animate collections can collapse independently. Apply/Update stay above the status area.
+Studio keeps Library, Motion and Create in one row. Text and SolidGen live in Library; Quick Tools and Curve live in Motion. At widths below 760 px, Customize opens a separate view; choose **Back to Library** to return. Wider panels keep the library beside the selected preset. Text Tools FX and Text Animate collections can collapse independently. Apply/Update stay above the status area.
 
 Choose the gear button → **Appearance** to select Orange, Lime Green, Light Blue, Burgundy or Plain White. Use the sun/moon button for dark/light mode. Both choices persist locally and affect only the interface, never preset artwork or AE color values. Search and Quick/Menu collapse controls remain in the header.
 

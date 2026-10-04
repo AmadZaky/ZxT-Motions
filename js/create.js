@@ -190,6 +190,8 @@ window.MotionAstraCreate = (() => {
         background: true,
       });
     const result = await api.action(payload);
+    if (result && result.changed > 0 && window.ZxTCollections)
+      ZxTCollections.record("create:" + ({newText:"text",newShape:"shape",newSolid:"solid"})[kind]);
     if (kind === "newSolid" && result && result.changed)
       remember(payload.color);
   }
@@ -206,7 +208,36 @@ window.MotionAstraCreate = (() => {
     $("new-shape-sides").disabled =
       value || $("new-shape-type").value !== "polygon";
   }
+  const items = [
+    {id:'text',form:'create-text',name:'Create Text'},
+    {id:'shape',form:'create-shape',name:'Create Shape'},
+    {id:'solid',form:'create-background',name:'Create Background'}
+  ];
+  function refreshCollection() {
+    if (!window.ZxTCollections) return;
+    const visible = ZxTCollections.filter(items, item => 'create:' + item.id, 'Create');
+    items.forEach(item => {
+      const form = $(item.form);
+      form.hidden = !visible.includes(item);
+      let star = form.querySelector('.favorite-toggle');
+      if (!star) {
+        star = ZxTCollections.button('create:' + item.id, item.name);
+        form.prepend(star);
+      }
+      const favorite = ZxTCollections.isFavorite('create:' + item.id);
+      star.textContent = favorite ? '★' : '☆';
+      star.setAttribute('aria-pressed', String(favorite));
+    });
+    // Reorder existing forms without recreating controls or losing drafts.
+    const grid = document.querySelector('#create .create-grid');
+    const current = Array.from(grid.children).filter(form => !form.hidden);
+    if (visible.some((item, i) => current[i] !== $(item.form)))
+      visible.forEach(item => grid.appendChild($(item.form)));
+    $('create-empty').hidden = visible.length > 0;
+    $('create-empty').textContent = ZxTCollections.empty('Create');
+  }
   function activate() {
+    refreshCollection();
     if (api && !loaded) loadFonts();
   }
   function init(options) {
@@ -253,5 +284,5 @@ window.MotionAstraCreate = (() => {
       $(id).onsubmit = (e) => submit(e, kind);
     });
   }
-  return { init, activate, setBusy };
+  return { init, activate, setBusy, refreshCollection };
 })();
