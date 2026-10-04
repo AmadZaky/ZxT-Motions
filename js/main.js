@@ -73,7 +73,7 @@
       .querySelectorAll("[data-host]")
       .forEach((b) => (b.disabled = value || !bridge.isReady()));
     $("paste-motion").disabled = $("paste-motion").disabled || !state.motionClipboard;
-    $("paste-motion").title = state.motionClipboard ? "Paste at the playhead; animated target properties are skipped." : "Copy Motion from one animated layer first.";
+    $("paste-motion").title = state.motionClipboard ? "Paste copied motion at the playhead; existing animation is protected." : "Copy Motion from one animated layer first.";
     $("apply").disabled = $("apply").disabled || state.invalid.size > 0;
     $("compact-fx").disabled =
       $("compact-fx").disabled ||
@@ -627,11 +627,13 @@
     if (state.busy || state.recovery) return;
     // A failed recopy must not leave a stale buffer ready for accidental Paste.
     state.motionClipboard = null;
-    $("motion-clipboard").textContent = "Copy Transform keyframes from one layer first. Paste starts at the playhead.";
+    $("motion-clipboard").textContent = "Copy preset motion or Transform keyframes from one layer. Paste starts at the playhead.";
     const result = await action({action: "copyMotion"});
     if (result && result.motion) {
       state.motionClipboard = result.motion;
-      $("motion-clipboard").textContent = `${result.motion.properties.length} properties · ${result.motion.keyframes} keyframes ready. Paste starts at the playhead.`;
+      $("motion-clipboard").textContent = result.motion.schema === "zxt-preset-motion-1"
+        ? `Preset motion ready · ${result.motion.core ? "ZxT preset" : ""}${result.motion.core && result.motion.yu.length ? " + " : ""}${result.motion.yu.length ? "Text Animate IN/OUT" : ""}. Paste starts at the playhead.`
+        : `${result.motion.properties.length} properties · ${result.motion.keyframes} keyframes ready. Paste starts at the playhead.`;
     }
     busy(state.busy);
   };

@@ -71,9 +71,10 @@ jobs:
           node tests/es3.cjs
           python tests/package.py
           python tests/official-release.py
+          python tests/official-repair.py
       - name: Verify host tests
         run: |
-          for test in static engine expressions bridge tools create-tools font-sources checkboxes parser-boundary update-target background-create fx-target panel-state background-stability preview-idle loop-modes background-colors loop-migration features-282 compact-controls switcher-choice yu-text motion-curve fx-tools module-isolation smart-apply bridge-lifecycle glass-surface fxtools-native-contract selection-context animation-preservation collections official-collections transform-motion; do
+          for test in static engine expressions bridge tools create-tools font-sources checkboxes parser-boundary update-target background-create fx-target panel-state background-stability preview-idle loop-modes background-colors loop-migration features-282 compact-controls switcher-choice yu-text motion-curve fx-tools module-isolation smart-apply bridge-lifecycle glass-surface fxtools-native-contract selection-context animation-preservation collections official-collections transform-motion preset-motion; do
             node "tests/$test.cjs"
           done
       - name: Verify browser workflow
@@ -83,6 +84,8 @@ jobs:
           node tests/reliability-ui.cjs
           node tests/official-cleanup-ui.cjs
           node tests/transform-motion-ui.cjs
+          node tests/preset-motion-ui.cjs
+          node tests/select-gap-ui.cjs
           node tests/studio-ui.cjs
           node tests/studio-binding.cjs
           node tests/studio-workflow-ui.cjs
@@ -112,8 +115,15 @@ jobs:
           asset="ZxT-Motions_v${version}.zip"
           if gh release view "$tag" >/dev/null 2>&1; then
             existing="$(gh api "repos/$GH_REPO/git/ref/tags/$tag" --jq '.object.sha')"
-            test "$existing" = "$SOURCE_SHA"
+            if [ "$existing" != "$SOURCE_SHA" ]; then
+              # An approved v1.0.0 repair may replace only its immediate published predecessor.
+              test "$version" = "1.0.0"
+              test "$existing" = "$(git rev-parse HEAD^)"
+              case "$(git log -1 --format=%s)" in '[official-repair] '*) ;; *) exit 1 ;; esac
+              gh api --method PATCH "repos/$GH_REPO/git/refs/tags/$tag" -f sha="$SOURCE_SHA" -F force=true >/dev/null
+            fi
             gh release upload "$tag" "$asset" "dist/Install ZxT-Motions.exe" --clobber
+            gh release edit "$tag" --latest --title "ZxT-Motions v${version} — Official Release" --notes-file RELEASE_NOTES.md
           else
             gh release create "$tag" "$asset" "dist/Install ZxT-Motions.exe" --target "$SOURCE_SHA" \
               --title "ZxT-Motions v${version} — Official Release" --latest --notes-file RELEASE_NOTES.md

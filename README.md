@@ -38,17 +38,19 @@ New FX use one **MotionAstra Progress** parameter controller. Native effects nee
 
 Existing instances keep their controls. **Compact old controls** converts an unanimated instance; it refuses animated controls and external expression dependencies to protect existing projects. Settings → control layout → Individual keeps separate controls for advanced keyframing.
 
-## Copy / Paste Motion — Transform only
+## Copy / Paste Motion — presets and Transform
 
-In **Motion → Quick Tools → Copy / Paste Motion**, select exactly one source layer and click **Copy Motion**. Only keyed Anchor Point, Position, Scale, Rotation/Z Rotation and Opacity are captured. Copy does not edit the layer or create an undo step. Effects, expressions, masks, animators, artwork, parenting and layer timing are excluded.
+In **Motion → Quick Tools → Copy / Paste Motion**, select exactly one source layer and click **Copy Motion**. Copy captures known ZxT preset settings and Text Animate/YUGraphic IN/OUT settings, plus any supported Anchor Point, Position, Scale, Rotation/Z Rotation and Opacity keyframes. Managed control keyframes (including Choice, Progress and native color controllers) are included. Preset setups are regenerated through the existing engines; arbitrary user effects, masks, text animators, expressions, artwork and parenting are not copied. Copy is read-only and creates no undo step.
 
-Select one or more targets, put the playhead at the desired start, and click **Paste Motion**. The earliest copied Transform key becomes offset zero; all keys use `CTI + offset` in seconds. Compatible targets receive the same timing without staggering. Separated Position axes require matching separated target Position; dimensions and spatial types must match. There is no conversion between 2D/3D or separated/unified Position.
+Select one or more targets, put the playhead at the desired start, and click **Paste Motion**. The earliest copied preset phase/start marker or keyframe becomes offset zero; all keys use `CTI + offset` in seconds. Compatible targets receive the same timing without staggering. Separated Position axes require matching separated target Position; dimensions and spatial types must match. There is no conversion between 2D/3D or separated/unified Position.
 
-**Conflict policy:** any destination property already containing keyframes is skipped, even outside the pasted range. Properties with an expression, including disabled expressions, are also skipped. Other empty, compatible properties can still be pasted. This protects old roving timing and automatic tangents as well as time collisions. A failed property paste removes only its new keys and restores its old static value; failed rollback asks you to check the timeline and Undo once.
+**Preset conflict policy:** a target with an existing managed preset/control/animator is skipped. Core presets also refuse existing Transform/Source Text animation and incompatible layer types. Background setups paste onto compatible selected solids without generating extra layers. Copied Text Animate phases must fit within the target layer. Layer timing stays unchanged.
+
+**Transform conflict policy:** any destination property already containing keyframes is skipped, even outside the pasted range. Properties with an expression, including disabled expressions, are also skipped. Other empty, compatible properties can still be pasted. This protects old roving timing and automatic tangents as well as time collisions. A failed property paste removes only its new keys and restores its old static value; failed rollback asks you to check the timeline and Undo once.
 
 Paste uses one **Paste ZxT Motion** undo group. Interpolation, ease, spatial tangents and supported continuity/auto-Bezier flags are transferred. Interior spatial roving is retained only if AE keeps the requested relative timing; otherwise that property is restored. Clipboard data is local to the open panel session and disappears on reload. Failed recopy clears the previous buffer. Existing Favorites/Recent lists are not used as a clipboard.
 
-See `docs/TRANSFORM_MOTION_VALIDATION.md` for automated coverage and required native AE checks.
+See `docs/OFFICIAL_V1_REPAIR_VALIDATION.md` and `docs/TRANSFORM_MOTION_VALIDATION.md` for coverage and required native AE checks.
 
 ## Text Animate · by YUGraphic
 

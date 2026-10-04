@@ -603,7 +603,52 @@ function run(a, codec) {
     message: message
   };
 }
-return { run: run, clear: clear };
+// Copy only known phase settings. protectPhase rejects customized selector code.
+function copyMotion(layer, codec) {
+  var m = read(layer, codec), result = [], i, phase, entry, opt, doc, text, n, span, budget, start;
+  if (!m) return result;
+  doc = layer.property("ADBE Text Properties").property("ADBE Text Document").value;
+  text = String(doc.text || "");
+  for (i = 0; i < 2; i++) {
+    phase = i ? "OUT" : "IN"; entry = m[phase]; if (!entry) continue;
+    if (!YTMCore.presets[entry.id - 1]) throw Error("Unknown Text Animate preset.");
+    protectPhase(layer, m, phase); opt = codec.parse(codec.encode(entry.options)); options(opt);
+    n = opt.group === "all" ? 1 : opt.group === "words" ? (text.match(/\S+/g) || []).length :
+      opt.group === "lines" ? (doc.composedLineCount || text.split(/\r\n|\r|\n/).length) :
+      opt.group === "charsNoSpaces" ? text.replace(/\s/g, "").length : text.length;
+    span = opt.duration + opt.stagger * YTMCore.rankSpan(Math.max(1, n), opt.order);
+    budget = Math.max(layer.containingComp.frameDuration, layer.outPoint - layer.containingComp.frameDuration - layer.inPoint) * (opt.mode === "BOTH" ? .45 : 1);
+    span = Math.min(span, budget);
+    start = opt.placement === "playhead" && opt.mode !== "BOTH" ? opt.playhead : phase === "IN" ? layer.inPoint : layer.outPoint - layer.containingComp.frameDuration - span;
+    result.push({id: entry.id, phase: phase, options: opt, time: start});
+  }
+  return result;
+}
+function validateMotion(entries) {
+  var used = {}, i, e;
+  for (i = 0; i < entries.length; i++) {
+    e = entries[i];
+    if (!e || typeof e.id !== "number" || e.id !== Math.floor(e.id) || !YTMCore.presets[e.id - 1] ||
+      (e.phase !== "IN" && e.phase !== "OUT") || used[e.phase] || typeof e.time !== "number" || !isFinite(e.time) || e.time < 0)
+      throw Error("Invalid copied Text Animate motion.");
+    options(e.options); used[e.phase] = true;
+  }
+}
+function pasteMotion(layer, entries, start, codec) {
+  validateMotion(entries);
+  var i, e, opt, m = {token: "yu_" + new Date().getTime() + "_paste"};
+  try {
+    for (i = 0; i < entries.length; i++) {
+      e = entries[i]; opt = options(e.options); opt.mode = e.phase; opt.placement = "playhead"; opt.playhead = start + e.time;
+      currentOptions = opt;
+      try { YTMHost.apply(layer, YTMCore.presets[e.id - 1], opt); }
+      finally { currentOptions = null; }
+      m[e.phase] = {id: e.id, options: opt};
+    }
+    write(layer, m, codec);
+  } catch (error) { clear(layer); throw error; }
+}
+return {run: run, clear: clear, copyMotion: copyMotion, pasteMotion: pasteMotion, validateMotion: validateMotion, motionVersion: 1};
 
 }());
 

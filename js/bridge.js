@@ -141,7 +141,7 @@
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==1){' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2){' +
         "var data=File(" +
         JSON.stringify(path + "/jsx/presets-data.jsx") +
         ");" +
@@ -155,7 +155,7 @@
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==1)' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2)' +
         'throw Error("Host initialization failed or an old host is still installed.");}' +
         "var output=host.dispatch(" +
         JSON.stringify(encodeURIComponent('{"action":"status"}')) +
@@ -169,9 +169,10 @@
       yuText: { file: "yu-text.jsx", label: "YU Txt Motion" },
       fxTools: { file: "fx-tools.jsx", label: "FXTools" }
     };
-    const module = modules[payload.action];
+    const moduleKey = ["copyMotion", "pasteMotion"].includes(payload.action) ? "yuText" : payload.action;
+    const module = modules[moduleKey];
     if (!module) return;
-    const key = JSON.stringify(payload.action);
+    const key = JSON.stringify(moduleKey);
     const expected = JSON.stringify(BUILD);
     await send(
       "var registry=$.global.MotionAstraModules||{};var module=registry[" +
@@ -179,7 +180,7 @@
         "];" +
         "if(!module||module.build!==" +
         expected +
-        '||typeof module.run!=="function"){' +
+        '||typeof module.run!=="function"' + (moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + '){' +
         "var file=File(" +
         JSON.stringify(extensionPath + "/jsx/" + module.file) +
         ");" +
@@ -196,7 +197,7 @@
         "];" +
         "if(!module||module.build!==" +
         expected +
-        '||typeof module.run!=="function")throw Error(' +
+        '||typeof module.run!=="function"' + (moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + ')throw Error(' +
         JSON.stringify(
           module.label + " failed to register. Reinstall the complete package."
         ) +

@@ -412,7 +412,7 @@ var MotionAstra = (function () {
       if (r.id === "switcher" && fx(l, "choice")) p.choice = Number(fx(l, "choice").property(1).value);
       var compactEnd = markerTime(l, m.token, "end");
       if (compactEnd !== null)
-        p.duration = Math.max(0.1, compactEnd - l.inPoint);
+        p.duration = Math.max(0.1, compactEnd - motionStart(l, m));
       return p;
     }
     for (i = 0; i < r.parameters.length; i++) {
@@ -445,7 +445,7 @@ var MotionAstra = (function () {
             : Number(v);
     }
     var end = markerTime(l, m.token, "end");
-    if (end !== null) p.duration = Math.max(0.1, end - l.inPoint);
+    if (end !== null) p.duration = Math.max(0.1, end - motionStart(l, m));
     return p;
   }
   function markKey(token, kind) {
@@ -518,12 +518,19 @@ var MotionAstra = (function () {
       } else m.removeKey(i);
     }
   }
+  function motionStart(l, m) {
+    if (typeof m.motionStart !== "number" || !isFinite(m.motionStart)) return l.inPoint;
+    var start = markerTime(l, m.token, "start");
+    return start === null ? m.motionStart : start;
+  }
   function markers(l, r, m, d, move) {
+    var start = motionStart(l, m);
+    if (typeof m.motionStart === "number") m.motionStart = start;
     removeMarker(l, m.token, "start");
-    addMarker(l, m.token, "start", l.inPoint, "[FX: " + r.name + "]");
+    addMarker(l, m.token, "start", start, "[FX: " + r.name + "]");
     if (move || markerTime(l, m.token, "end") === null) {
       removeMarker(l, m.token, "end");
-      addMarker(l, m.token, "end", l.inPoint + d, "[FX End]");
+      addMarker(l, m.token, "end", start + d, "[FX End]");
     }
   }
   function clock(m, body) {
@@ -556,7 +563,7 @@ var MotionAstra = (function () {
         'function C(k,d){var c;try{c=effect("MA2 "+k)("ADBE Color Control-0001").value;}catch(e){c=d;}if(!c||c.length<3)throw Error("MotionAstra: invalid RGBA color control MA2 "+k);return [Number(c[0]),Number(c[1]),Number(c[2]),c.length>3?Number(c[3]):1];}\n';
     return (
       prefix +
-      'var S=inPoint,E=S+Math.max(.1,P("duration",2));for(var i=1;i<=marker.numKeys;i++){if(marker.key(i).parameters[' +
+      'var S=' + (typeof m.motionStart === "number" && isFinite(m.motionStart) ? String(m.motionStart) : "inPoint") + ';' + (typeof m.motionStart === "number" ? 'for(var s=1;s<=marker.numKeys;s++){if(marker.key(s).parameters[' + quote(markKey(m.token, "start")) + ']!==undefined){S=marker.key(s).time;break;}}' : '') + 'var E=S+Math.max(.1,P("duration",2));for(var i=1;i<=marker.numKeys;i++){if(marker.key(i).parameters[' +
       quote(markKey(m.token, "end")) +
       "]!==undefined){E=marker.key(i).time;break;}}\n" +
       'var D=Math.max(thisComp.frameDuration,E-S),raw=Math.max(0,time-S),q=P("static",0)>.5?0:P("manual",0)>.5?Math.max(0,Math.min(1,P("progress",0)/100)):(P("loopMode",1)<.5?1-Math.abs((raw/D)%2-1):P("loopMode",1)<1.5?(raw%D)/D:P("loopMode",1)<2.5?raw/D:Math.min(1,raw/D));\n' +
@@ -1753,7 +1760,7 @@ var MotionAstra = (function () {
       message: lines.join("\n")
     };
   }
-  function apply(a) {
+  function apply(a, selected) {
     if (
       a.layout !== undefined &&
       a.layout !== "compact" &&
@@ -1774,7 +1781,9 @@ var MotionAstra = (function () {
       m,
       count = 0,
       lines = [];
-    if (r.category === "Background") {
+    if (selected) {
+      ls = selected;
+    } else if (r.category === "Background") {
       ls = [];
       {
         l = r.legacy
@@ -1818,6 +1827,7 @@ var MotionAstra = (function () {
           build: BUILD,
           layout: a.layout === "legacy" ? "legacy" : "compact"
         };
+        if (selected && typeof a.motionStart === "number" && isFinite(a.motionStart)) m.motionStart = a.motionStart;
         setControls(l, r, p, m);
         markers(l, r, m, p.duration, true);
         if (r.category === "Text") textFx(l, r, p, m);
@@ -2734,9 +2744,9 @@ var MotionAstra = (function () {
       out.push({speed: Number(values[i].speed), influence: Number(values[i].influence)});
     return out;
   }
-  function motionKey(p, k) {
+  function motionKey(p, k, control) {
     var value = p.keyValue(k), spatial = !!p.isSpatial;
-    motionDimensions(value);
+    if (!control) motionDimensions(value);
     var result = {
       time: p.keyTime(k), value: value,
       inType: motionType(p.keyInInterpolationType(k)), outType: motionType(p.keyOutInterpolationType(k)),
@@ -2784,7 +2794,7 @@ var MotionAstra = (function () {
       for (j = 0; j < entries[i].keys.length; j++) entries[i].keys[j].time -= earliest;
     var motion = {schema: "zxt-transform-motion-1", properties: entries, keyframes: total};
     validateTransformMotion(motion);
-    return {ok: true, changed: 0, motion: motion, message: "Motion copied" + (lines.length ? ". " + lines.join(" ") : ""), severity: lines.length ? "warning" : "success"};
+    return {ok: true, changed: 0, motion: motion, origin: earliest, message: "Motion copied" + (lines.length ? ". " + lines.join(" ") : ""), severity: lines.length ? "warning" : "success"};
   }
   function validateTransformMotion(motion) {
     var i, j, k, entry, key, names = {}, found = false, minimum = Infinity;
@@ -2831,9 +2841,9 @@ var MotionAstra = (function () {
     // Do not allow both separated and unified Position in a clipboard.
     if (names["ADBE Position:-1"] && (names["ADBE Position:0"] || names["ADBE Position:1"] || names["ADBE Position:2"])) fail("Mixed Position representations.");
   }
-  function pasteTransformMotion(motion) {
+  function pasteTransformMotion(motion, selected, startTime) {
     validateTransformMotion(motion);
-    var c = comp(), ls = selection(c), start = c.time, lines = [], changed = 0,
+    var c = comp(), ls = selected || selection(c), start = typeof startTime === "number" ? startTime : c.time, lines = [], changed = 0,
       i, j, k, p, entry, oldValue, layerChanged, unsafe = false;
     if (typeof start !== "number" || !isFinite(start)) fail("Invalid playhead time.");
     function nativeEase(values) {
@@ -2901,6 +2911,200 @@ var MotionAstra = (function () {
       if (layerChanged) changed++;
     }
     return {changed: changed, severity: lines.length ? "warning" : "success", recovery: unsafe,
+      message: "Motion pasted to " + changed + " layer" + (changed === 1 ? "" : "s") + (lines.length ? ". " + lines.join(" ") : "")};
+  }
+  // Preset clipboard: only managed setup IDs/settings, never arbitrary expressions.
+  // The original Transform-only path remains unchanged for ordinary keyed layers.
+  function copyMotion() {
+    var c = comp(), ls = c.selectedLayers, l, m, r, p, core = null, yu = [], transform = null,
+      origin = Infinity, result, i, j, g, control, controls = [], allowed = {};
+    if (ls.length !== 1) fail("Select exactly one source layer to Copy Motion.");
+    l = ls[0]; m = meta(l);
+    if (m) {
+      r = recipes[m.id]; if (!r) fail("This preset is not available in this build.");
+      controlCheck(l, r); p = readControls(l, r, m);
+      g = l.property("ADBE Effect Parade");
+      allowed[MASTER] = true;
+      for (i = 0; i < r.parameters.length; i++) allowed["MA2 " + r.parameters[i].id] = true;
+      for (i = 1; i <= g.numProperties; i++) {
+        control = g.property(i);
+        if (!allowed[control.name]) continue;
+        var controller = control.property(1);
+        if (controller.expression) fail("Custom control expressions are protected; Copy Motion supports preset settings and control keyframes only.");
+        if (controller.numKeys) {
+          var entry = {name: control.name, keys: []};
+          for (j = 1; j <= controller.numKeys; j++) entry.keys.push(motionKey(controller, j, true));
+          controls.push(entry); origin = Math.min(origin, entry.keys[0].time);
+        }
+      }
+      var start = motionStart(l, m), end = markerTime(l, m.token, "end");
+      core = {id: r.id, layout: m.layout === "compact" ? "compact" : "legacy", params: p,
+        time: start, controls: controls};
+      if (end !== null) core.params.duration = Math.max(.1, end - start);
+      origin = Math.min(origin, start);
+    }
+    if (/\[MA_YU\]/.test(String(l.comment || ""))) {
+      var handler = moduleHandler("yuText");
+      if (!handler.copyMotion) fail("Text Animate module is stale. Reload the panel.");
+      yu = handler.copyMotion(l, {parse: parse, encode: encode});
+      for (i = 0; i < yu.length; i++) origin = Math.min(origin, yu[i].time);
+    }
+    if (!core && !yu.length) return copyTransformMotion();
+    try { result = copyTransformMotion(); transform = result.motion; origin = Math.min(origin, result.origin); }
+    catch (error) { if (String(error).indexOf("No supported Transform keyframes") < 0) throw error; }
+    if (transform) for (i = 0; i < transform.properties.length; i++)
+      for (j = 0; j < transform.properties[i].keys.length; j++) transform.properties[i].keys[j].time += result.origin - origin;
+    if (core) {
+      core.time -= origin;
+      for (i = 0; i < controls.length; i++) for (j = 0; j < controls[i].keys.length; j++) controls[i].keys[j].time -= origin;
+    }
+    for (i = 0; i < yu.length; i++) yu[i].time -= origin;
+    var motion = {schema: "zxt-preset-motion-1", core: core, yu: yu, transform: transform,
+      properties: transform ? transform.properties : [], keyframes: transform ? transform.keyframes : 0};
+    validatePresetMotion(motion);
+    return {ok: true, changed: 0, motion: motion, message: "Motion copied", severity: "success"};
+  }
+  function validatePresetMotion(motion) {
+    var i, j, r, allowed = {}, entry;
+    if (!motion || motion.schema !== "zxt-preset-motion-1") fail("Copy Motion from one animated layer first.");
+    if (motion.transform) {
+      var normalized = parse(encode(motion.transform)), first = Infinity;
+      for (i = 0; i < normalized.properties.length; i++) first = Math.min(first, normalized.properties[i].keys[0].time);
+      for (i = 0; i < normalized.properties.length; i++) for (j = 0; j < normalized.properties[i].keys.length; j++) normalized.properties[i].keys[j].time -= first;
+      validateTransformMotion(normalized);
+    }
+    if (motion.core) {
+      r = recipes[motion.core.id]; if (!r) fail("Unknown copied preset.");
+      params(r, motion.core.params);
+      if (motion.core.layout !== "compact" && motion.core.layout !== "legacy") fail("Invalid copied control layout.");
+      if (typeof motion.core.time !== "number" || !isFinite(motion.core.time) || motion.core.time < 0) fail("Invalid copied preset timing.");
+      allowed[MASTER] = true;
+      for (i = 0; i < r.parameters.length; i++) allowed["MA2 " + r.parameters[i].id] = r.parameters[i].type === "color" ? "color" : true;
+      if (!(motion.core.controls instanceof Array)) fail("Invalid copied controls.");
+      for (i = 0; i < motion.core.controls.length; i++) {
+        entry = motion.core.controls[i];
+        if (!allowed[entry.name] || !entry.keys || !entry.keys.length) fail("Invalid copied control property.");
+        if (allowed[entry.name] === "used") fail("Duplicate copied control property.");
+        validateMotionControl(entry.keys, allowed[entry.name] === "color" ? 4 : 1);
+        allowed[entry.name] = "used";
+      }
+    }
+    if (!(motion.yu instanceof Array) || motion.yu.length > 2) fail("Invalid copied text phases.");
+    if (motion.yu.length) moduleHandler("yuText").validateMotion(motion.yu);
+    if (!motion.core && !motion.yu.length) fail("No copied preset motion.");
+  }
+  function validateMotionControl(keys, dimensions) {
+    var i, j, k, key, value, eases;
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i]; value = key.value;
+      if (typeof key.time !== "number" || !isFinite(key.time) || key.time < 0 || (i && key.time <= keys[i - 1].time)) fail("Invalid control timing.");
+      if (dimensions === 1) { if (typeof value !== "number" || !isFinite(value)) fail("Invalid control value."); }
+      else { if (Object.prototype.toString.call(value) !== "[object Array]" || value.length !== dimensions) fail("Invalid color control value."); for (j = 0; j < value.length; j++) number(value[j], 0, 1); }
+      motionNativeType(key.inType); motionNativeType(key.outType);
+      if (typeof key.temporalAuto !== "boolean" || typeof key.temporalContinuous !== "boolean") fail("Invalid control flags.");
+      eases = [key.inEase, key.outEase];
+      for (j = 0; j < eases.length; j++) {
+        if (!(eases[j] instanceof Array) || (eases[j].length !== 1 && eases[j].length !== dimensions)) fail("Invalid control ease.");
+        for (k = 0; k < eases[j].length; k++) { if (typeof eases[j][k].speed !== "number" || !isFinite(eases[j][k].speed)) fail("Invalid control speed."); number(eases[j][k].influence, .1, 100); }
+      }
+    }
+  }
+  function protectPresetTarget(l, motion) {
+    if (l.locked) throw Error("locked layer");
+    if (meta(l) || /\[MA_YU\]/.test(String(l.comment || ""))) throw Error("existing preset protected");
+    var groups = [l.property("ADBE Effect Parade"), l.property("ADBE Mask Parade"), l.property("ADBE Root Vectors Group")], i, j, g, p;
+    if (isText(l)) groups.push(l.property("ADBE Text Properties").property("ADBE Text Animators"));
+    for (i = 0; i < groups.length; i++) if (groups[i]) for (j = 1; j <= groups[i].numProperties; j++) {
+      g = groups[i].property(j);
+      if (/^(MA2 |YTM )/.test(g.name)) throw Error("existing preset controls/animators protected");
+    }
+    if (motion.core) {
+      preflight(l, recipes[motion.core.id], false);
+      // Core setups can author Source Text/Transform. Refuse an animated target.
+      for (i = 0; i < motionNames.length; i++) {
+        p = prop(l, motionNames[i]);
+        if (p && (p.numKeys || p.expression)) throw Error("existing Transform animation protected");
+        if (p && p.dimensionsSeparated) {
+          var axes = positionProps(l);
+          for (j = 0; j < axes.length; j++) if (axes[j].numKeys || axes[j].expression) throw Error("existing Position animation protected");
+        }
+      }
+      if (isText(l)) {
+        p = source(l); if (p.numKeys || p.expression) throw Error("existing Source Text animation protected");
+      }
+    }
+    if (motion.yu.length) {
+      if (!isText(l)) throw Error("Text Animate requires a text layer");
+      for (i = 0; i < motion.yu.length; i++) {
+        var t = l.containingComp.time + motion.yu[i].time;
+        if (t < l.inPoint || t >= l.outPoint - l.containingComp.frameDuration) throw Error("copied text phase falls outside target layer duration");
+      }
+    }
+  }
+  function writeMotionControl(p, keys, start) {
+    var i, j, n, key, ins, outs;
+    for (i = 0; i < keys.length; i++) p.setValueAtTime(start + keys[i].time, keys[i].value);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i]; n = i + 1; ins = []; outs = [];
+      for (j = 0; j < key.inEase.length; j++) ins.push(new KeyframeEase(key.inEase[j].speed, key.inEase[j].influence));
+      for (j = 0; j < key.outEase.length; j++) outs.push(new KeyframeEase(key.outEase[j].speed, key.outEase[j].influence));
+      p.setTemporalAutoBezierAtKey(n, false); p.setTemporalContinuousAtKey(n, false);
+      p.setTemporalEaseAtKey(n, ins, outs);
+      p.setInterpolationTypeAtKey(n, motionNativeType(key.inType), motionNativeType(key.outType));
+      p.setTemporalContinuousAtKey(n, key.temporalContinuous); p.setTemporalAutoBezierAtKey(n, key.temporalAuto);
+    }
+  }
+  function pasteMotion(motion) {
+    if (!motion || motion.schema !== "zxt-preset-motion-1") return pasteTransformMotion(motion);
+    validatePresetMotion(motion);
+    var c = comp(), ls = selection(c), changed = 0, lines = [], recovery = false, i, j, l, r, created, yuCreated, oldComment, m, originalText, originals, attemptedCore;
+    if (app.project.expressionEngine !== "javascript-1.0") fail("Use Project Settings → Expressions → JavaScript.");
+    for (i = 0; i < ls.length; i++) {
+      l = ls[i]; created = false; attemptedCore = false; yuCreated = false; oldComment = l.comment; originalText = null; originals = [];
+      try { protectPresetTarget(l, motion); }
+      catch (conflict) { lines.push(l.name + ": " + String(conflict) + "; skipped."); continue; }
+      try {
+        if (motion.core) {
+          originalText = isText(l) ? source(l).value : null;
+          for (j = 0; j < motionNames.length; j++) { var originalProp = prop(l, motionNames[j]); if (originalProp && !originalProp.dimensionsSeparated) originals.push({matchName: motionNames[j], value: originalProp.value}); }
+          attemptedCore = true;
+          r = apply({id: motion.core.id, params: motion.core.params, layout: motion.core.layout,
+            motionStart: c.time + motion.core.time}, [l]);
+          if (!r.changed) throw Error(r.message);
+          created = true;
+          for (j = 0; j < motion.core.controls.length; j++) {
+            var entry = motion.core.controls[j], control = l.property("ADBE Effect Parade").property(entry.name);
+            if (!control) throw Error("Copied control is unavailable: " + entry.name);
+            writeMotionControl(control.property(1), entry.keys, c.time);
+          }
+        }
+        if (motion.yu.length) {
+          moduleHandler("yuText").pasteMotion(l, motion.yu, c.time, {parse: parse, encode: encode});
+          yuCreated = true;
+        }
+        if (motion.transform) {
+          var transforms = parse(encode(motion.transform)), earliest = Infinity;
+          for (j = 0; j < transforms.properties.length; j++) earliest = Math.min(earliest, transforms.properties[j].keys[0].time);
+          for (j = 0; j < transforms.properties.length; j++) for (var keyIndex = 0; keyIndex < transforms.properties[j].keys.length; keyIndex++) transforms.properties[j].keys[keyIndex].time -= earliest;
+          r = pasteTransformMotion(transforms, [l], c.time + earliest);
+          if (r.severity === "warning") lines.push(r.message);
+          if (r.recovery) recovery = true;
+        }
+        changed++;
+      } catch (error) {
+        try {
+          if (yuCreated) moduleHandler("yuText").clear(l);
+          if (created) { m = meta(l); if (m) cleanup(l, m); }
+          if (attemptedCore) {
+            if (originalText) source(l).setValue(originalText);
+            for (j = 0; j < originals.length; j++) prop(l, originals[j].matchName).setValue(originals[j].value);
+          }
+          l.comment = oldComment;
+        } catch (rollback) { recovery = true; }
+        lines.push(l.name + ": " + String(error) + ". " + (recovery ? "Check the layer and Undo once." : "New preset setup removed; existing data protected."));
+      }
+    }
+    return {changed: changed, recovery: recovery, severity: lines.length ? "warning" : "success",
       message: "Motion pasted to " + changed + " layer" + (changed === 1 ? "" : "s") + (lines.length ? ". " + lines.join(" ") : "")};
   }
   function tool(a) {
@@ -3138,7 +3342,7 @@ var MotionAstra = (function () {
           effectRegistryAvailable: installed.length > 0
         };
       } else if (a.action === "copyMotion") {
-        result = copyTransformMotion();
+        result = copyMotion();
       } else if (a.action === "fonts") {
         result = fontList();
       } else if (a.action === "load" || a.action === "reconnect") {
@@ -3183,7 +3387,7 @@ var MotionAstra = (function () {
             return update(a);
           },
           pasteMotion: function () {
-            return pasteTransformMotion(a.motion);
+            return pasteMotion(a.motion);
           },
           tool: function () {
             return tool(a);
@@ -3247,6 +3451,6 @@ var MotionAstra = (function () {
     throw Error(
       "MotionAstra JSON transport self-check failed. Restart AE and install the full package."
     );
-  return { dispatch: dispatch, version: "1.0.0", build: BUILD, transformMotionVersion: 1 };
+  return { dispatch: dispatch, version: "1.0.0", build: BUILD, transformMotionVersion: 2 };
 })();
 if (typeof $ !== "undefined" && $.global) $.global.MotionAstra = MotionAstra;

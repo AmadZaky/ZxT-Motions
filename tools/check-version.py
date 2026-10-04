@@ -16,5 +16,8 @@ except subprocess.CalledProcessError:
  text=subprocess.check_output(['git','show','HEAD^:CSXS/manifest.xml'],cwd=root,text=True)
  previous=ET.fromstring(text).attrib['ExtensionBundleVersion']
 old=tuple(map(int,previous.split('.')));new=tuple(map(int,version.split('.')))
-assert new == (old[0],old[1],old[2]+1) or (previous=='2.8.9' and version=='3.0.0') or (previous=='3.0.11' and version=='3.5.0') or (previous=='3.5.2' and version=='3.6.0') or (previous=='3.6.1' and version=='1.0.0'), f'Expected next patch or approved minor/major migration after {previous}, got {version}'
+# Explicitly approved Official maintenance retains v1.0.0; no ordinary push bypass.
+subject=subprocess.check_output(['git','log','-1','--format=%s'],cwd=root,text=True).strip()
+official_repair=previous==version=='1.0.0' and subject.startswith('[official-repair] ')
+assert official_repair or new == (old[0],old[1],old[2]+1) or (previous=='2.8.9' and version=='3.0.0') or (previous=='3.0.11' and version=='3.5.0') or (previous=='3.5.2' and version=='3.6.0') or (previous=='3.6.1' and version=='1.0.0'), f'Expected next patch or approved minor/major migration after {previous}, got {version}'
 print('PASS: patch increment and runtime version parity:',version)
