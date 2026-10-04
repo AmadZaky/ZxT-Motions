@@ -25,7 +25,7 @@ function setup(){
 }
 const flush=()=>new Promise(r=>setImmediate(r));
 (async()=>{
- const e=setup();const cardApply=()=>e.card().children[1].children[3].children[1];
+ const e=setup();e.card().children[1].children[3].children[0].onclick();const cardApply=()=>e.get('apply');
  cardApply().onclick();assert.equal(e.calls.filter(c=>c.payload.action==='apply').length,1);
  e.calls[0].resolve({composition:'Comp',selected:1,version:'25',hostVersion:'2.8.0'});await flush();
  assert.equal(cardApply().disabled,true,'Late status response must not unlock a mutation');
@@ -35,7 +35,7 @@ const flush=()=>new Promise(r=>setImmediate(r));
  b.tabs.find(t=>t.dataset.tab==='Background').onclick();
  const customize=b.card().children[1].children[3].children[0];customize.onclick();
  const color=b.get('param-color2');color.value='#ee2244';color.oninput();b.get('close').onclick();
- b.card().children[1].children[3].children[1].onclick();
+ b.card().children[1].children[3].children[0].onclick();b.get('apply').onclick();
  const sent=b.calls.find(c=>c.payload.action==='generateBackground');assert(sent);assert.equal(sent.payload.params.color2,'#ee2244');
  console.log('PASS: status cannot unlock mutation; card Generate retains customized colors.');
 })().catch(e=>{console.error(e);process.exit(1);});

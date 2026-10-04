@@ -140,14 +140,23 @@ function run(a, codec) {
       throw Error(
         "No YU Txt Motion settings on the selected layer. Apply a YU preset first."
       );
+    if (a.target) {
+      actual = identity(c, l, m);
+      if (actual.comp !== a.target.comp || actual.layer !== a.target.layer || actual.token !== a.target.token)
+        throw Error("Selection changed. Load animation settings again.");
+    }
     phase = a.phase === "OUT" ? "OUT" : "IN";
-    var entry = m[phase] || m.IN || m.OUT;
+    var entry = a.phase ? m[phase] : (m.IN || m.OUT);
+    if (!a.phase && !m.IN) phase = "OUT";
     if (!entry) throw Error("No saved YU settings.");
+    var loadedOptions = codec.parse(codec.encode(entry.options));
+    loadedOptions.mode = phase;
     return {
       ok: true,
       id: entry.id,
-      options: entry.options,
+      options: loadedOptions,
       target: identity(c, l, m),
+      revision: codec.encode(m),
       layerName: l.name,
       message: "Loaded YU settings from " + l.name + "."
     };
@@ -161,6 +170,8 @@ function run(a, codec) {
     m = read(list[0], codec);
     actual = m ? identity(c, list[0], m) : null;
     target = a.target;
+    if (a.revision !== undefined && codec.encode(m) !== a.revision)
+      throw Error("Animation settings changed. Load selected settings again.");
     if (
       !actual ||
       actual.comp !== target.comp ||

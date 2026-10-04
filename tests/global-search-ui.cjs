@@ -9,8 +9,8 @@ await page.locator('#text-tools-group > summary').click();
 assert(await page.locator('#library').isHidden());assert(await page.locator('.yu-card').first().isVisible());
 await page.waitForFunction(()=>localStorage.getItem('ma-text-tools-folded')==='true');
 await page.reload();assert.equal(await page.locator('#text-tools-group').evaluate(e=>e.open),false);
-await page.locator('[data-tab="Background"]').click();assert(await page.locator('#library').isVisible());
-await page.locator('[data-tab="YU"]').click();assert(await page.locator('#library').isHidden());
+await page.locator('[data-workspace="Library"]').click();await page.locator('[data-tab="Background"]').click();assert(await page.locator('#library').isVisible());
+await page.locator('[data-workspace="Library"]').click();await page.locator('[data-tab="YU"]').click();assert(await page.locator('#library').isHidden());
 await page.locator('#text-tools-group > summary').click();assert(await page.locator('#library').isVisible());
 async function search(q){if(await page.locator('#global-search').isHidden())await page.locator('#toggle-search').click();await page.locator('#search').fill(q);}
 await search('Panning Transition');assert.equal(await page.locator('#search-results button').count(),0);
@@ -21,4 +21,4 @@ const preset=await page.evaluate(()=>YTMCore.presets[0]);await search(preset.nam
 await page.evaluate(()=>{window.drawn=[];const c=document.querySelector('#yu-preview').getContext('2d'),original=c.fillText.bind(c);c.fillText=(text,...args)=>{window.drawn.push(text);return original(text,...args);};});await page.locator('#yu-group').selectOption('all');await page.locator('#yu-replay').click();await page.waitForFunction(()=>window.drawn.includes('Motion'));
 await search('Create background');await page.locator('#search-results button').click();assert(await page.locator('#create').isVisible());assert(await page.locator('[data-create="newSolid"]').isDisabled());
 await search('anchor');assert(await page.locator('#search-results button').count()>0);await page.locator('#search').press('Escape');assert(await page.locator('#global-search').isHidden());assert.equal(await page.locator('#toggle-search').getAttribute('aria-expanded'),'false');
-await page.locator('[data-tab="YU"]').click();await page.setViewportSize({width:380,height:850});await page.screenshot({path:'/tmp/motionastra-307.png'});assert.deepEqual(errors,[]);await browser.close();console.log('PASS: merged collection, removal, square previews at three widths, Motion preview text, cross-panel search navigation, keyboard dismissal and offline mutation guard.');})().catch(e=>{console.error(e);process.exit(1);});
+await page.locator('[data-workspace="Library"]').click();await page.locator('[data-tab="YU"]').click();await page.setViewportSize({width:380,height:850});await page.screenshot({path:'/tmp/motionastra-307.png'});assert.deepEqual(errors,[]);await browser.close();console.log('PASS: merged collection, removal, square previews at three widths, Motion preview text, cross-panel search navigation, keyboard dismissal and offline mutation guard.');})().catch(e=>{console.error(e);process.exit(1);});

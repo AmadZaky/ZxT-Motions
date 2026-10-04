@@ -1,6 +1,6 @@
-/* MotionAstra 3.6.0 — ES3 host. No third-party AE effects required. */
+/* MotionAstra 3.6.1 — ES3 host. No third-party AE effects required. */
 var MotionAstra = (function () {
-  var BUILD = "3.6.0",
+  var BUILD = "3.6.1",
     recipes = {},
     serial = 0;
   for (var ri = 0; ri < MA_PRESET_DATA.presets.length; ri++)
@@ -1901,14 +1901,14 @@ var MotionAstra = (function () {
       else if (l instanceof AVLayer) row.type = l.hasVideo ? "Footage" : "Audio";
       try {
         m = meta(l);
-        if (m) row.core = { id: m.id, name: recipes[m.id] ? recipes[m.id].name : m.id, layout: m.layout === "compact" ? "compact" : "legacy", target: identity(c, l, m) };
+        if (m) row.core = { id: m.id, name: recipes[m.id] ? recipes[m.id].name : m.id, layout: m.layout === "compact" ? "compact" : "legacy", target: identity(c, l, m), revision: encode(m) };
       } catch (error) { row.warning = "FX metadata needs attention. Reload or restore this layer before updating."; }
       try {
         match = String(l.comment || "").match(/\[MA_YU\]([^\r\n]*)\[\/MA_YU\]/);
         yu = match ? parse(match[1]) : null;
         if (yu) for (j = 0; j < 2; j++) {
           phase = j ? "OUT" : "IN";
-          if (yu[phase]) row.animations.push({ id: yu[phase].id, phase: phase, target: identity(c, l, yu) });
+          if (yu[phase]) row.animations.push({ id: yu[phase].id, phase: phase, target: identity(c, l, yu), revision: encode(yu) });
         }
       } catch (yuError) { row.warning = "Text animation metadata needs attention."; }
       g = l.property("ADBE Effect Parade");
@@ -1922,6 +1922,7 @@ var MotionAstra = (function () {
   }
 
   function load(a) {
+    assertTarget(comp(), a.target);
     var c = comp(),
       ls = selection(c);
     if (ls.length !== 1) fail("Select one FX layer to load into FX Tweaker.");
@@ -1935,6 +1936,7 @@ var MotionAstra = (function () {
       params: readControls(ls[0], r, m),
       layout: m.layout === "compact" ? "compact" : "legacy",
       target: identity(c, ls[0], m),
+      revision: encode(m),
       layerName: ls[0].name,
       message: "Loaded " + r.name + " from " + ls[0].name + "."
     };
@@ -1958,6 +1960,8 @@ var MotionAstra = (function () {
   function compact(a) {
     var c = comp();
     assertTarget(c, a.target);
+    if (a.target && a.revision !== undefined && encode(meta(c.selectedLayers[0])) !== a.revision)
+      fail("Settings changed in After Effects. Load selected settings before updating.");
     var ls = selection(c),
       l,
       m,
@@ -2041,6 +2045,8 @@ var MotionAstra = (function () {
   function update(a, selected) {
     var c = comp();
     assertTarget(c, a.target);
+    if (a.target && a.revision !== undefined && encode(meta(c.selectedLayers[0])) !== a.revision)
+      fail("Settings changed in After Effects. Load selected settings before updating.");
     var ls = selected || c.selectedLayers,
       r = recipes[a.id];
     if (!r) fail("Choose a v2 preset.");
@@ -2986,6 +2992,10 @@ var MotionAstra = (function () {
         undo = true;
         result = routes[a.action]();
         result.ok = true;
+        // Capture identity in the mutation transaction; follow-up loads validate it.
+        if (result.changed > 0) {
+          try { result.selection = selectionContext(app.project.activeItem); } catch (snapshotError) {}
+        }
       }
     } catch (error) {
       result = {
@@ -3024,6 +3034,6 @@ var MotionAstra = (function () {
     throw Error(
       "MotionAstra JSON transport self-check failed. Restart AE and install the full package."
     );
-  return { dispatch: dispatch, version: "3.6.0", build: BUILD };
+  return { dispatch: dispatch, version: "3.6.1", build: BUILD };
 })();
 if (typeof $ !== "undefined" && $.global) $.global.MotionAstra = MotionAstra;

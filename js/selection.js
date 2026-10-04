@@ -52,5 +52,5 @@ window.ZxTSelection = (() => {
     if(current.truncated){const p=document.createElement('p');p.textContent='Showing the first 50 selected layers.';box.appendChild(p);}
   }
   function update(response,ready){connected=ready;current=response&&response.selection||null;const next=JSON.stringify([connected,current]);if(next!==signature){signature=next;render();}}
-  return {init(a){adapter=a;$('selection-refresh').onclick=a.refresh;render();},update,eligibility};
+  return {context(){ return current; },init(a){adapter=a;$('selection-refresh').onclick=a.refresh;render();},update,eligibility};
 })();

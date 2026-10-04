@@ -10,6 +10,11 @@
       busy: false,
       query: "",
       drafts: {},
+      draftKey: null,
+      inspectorDrafts: {},
+      loadedInstance: null,
+      stale: false,
+      recovery: false,
       draftEdits: {},
       draftInvalid: {},
       invalid: new Set(),
@@ -59,8 +64,9 @@
   }
   function busy(value) {
     state.busy = value;
+    $("workspace").setAttribute("aria-busy", String(value));
     if (state.preset)
-      state.draftInvalid[state.preset.id] = state.invalid.size > 0;
+      state.draftInvalid[state.draftKey] = state.invalid.size > 0;
     MotionPreview.suspend(value);
     document
       .querySelectorAll("[data-host]")
@@ -70,7 +76,13 @@
       $("compact-fx").disabled ||
       !state.target ||
       state.loadedLayout !== "legacy";
-    $("update").disabled = $("update").disabled || state.invalid.size > 0;
+    $("update").disabled = $("update").disabled || state.invalid.size > 0 || (state.target && !state.dirty);
+    if (state.target && state.loadedInstance && window.ZxTSelection) {
+      const c = ZxTSelection.context(), row = c && c.total === 1 && c.layers[0];
+      state.stale = !!(row && row.core && row.core.target.token === state.target.token && state.loadedInstance.revision && row.core.revision !== state.loadedInstance.revision);
+      $("update").disabled = $("update").disabled || state.stale;
+    }
+    if (state.target) $("inspector-mode").textContent = state.dirty ? "APPLIED · UNSAVED CHANGES" : "APPLIED · UP TO DATE";
     document.querySelectorAll(".card-apply").forEach((b) => {
       b.disabled = b.disabled || !!state.draftInvalid[b.dataset.preset];
     });
@@ -89,13 +101,19 @@
       if (state.preset) {
         const info = gate($("apply"), state.preset.category, state.preset.id, "apply", null);
         const updateInfo = gate($("update"), state.preset.category, state.preset.id, "update", state.target);
-        $("target-guidance").textContent = state.target ? updateInfo.reason : info.reason;
+        $("target-guidance").textContent = state.stale ? "Settings changed in AE. Load settings to refresh; your draft is retained." : state.target ? updateInfo.reason : info.reason;
       }
       document.querySelectorAll(".card-apply").forEach(b => {
         const p = data.presets.find(p => p.id === b.dataset.preset);
         if (p) gate(b, p.category, p.id, "apply", null);
       });
     }
+    $("recovery").hidden = !state.recovery;
+    if (state.recovery) {
+      $("recovery-message").textContent = "Check the result in AE before retrying. Load settings or inspect the timeline; no automatic retry was sent.";
+      document.querySelectorAll("[data-host]").forEach(b => { if (!["load-fx","selection-refresh","tweaker-load"].includes(b.id)) b.disabled = true; });
+    }
+    $("recovery-continue").disabled = value;
     if (window.MotionAstraYUUI) window.MotionAstraYUUI.setBusy(value);
     if (window.MotionCurve) window.MotionCurve.setBusy(value);
     if (window.MotionAstraCreate) window.MotionAstraCreate.setBusy(value);
@@ -125,13 +143,17 @@
     }
     busy(state.busy);
   }
+  function mutates(payload) {
+    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
+  }
   async function action(payload) {
-    if (state.busy) return null;
+    if (state.busy || (state.recovery && mutates(payload))) return null;
     busy(true);
     try {
       const r = await bridge.call(JSON.parse(JSON.stringify(payload)));
-      if (r.changed > 0 && ["apply", "update", "generateBackground"].includes(payload.action)) {
-        if (state.draftEdits[payload.id]) state.draftEdits[payload.id].clear();
+      if (r.selection && window.ZxTSelection) ZxTSelection.update({selection:r.selection}, true);
+      if (r.changed > 0 && r.severity !== "warning" && ["apply", "update", "generateBackground"].includes(payload.action)) {
+        if (state.draftEdits[state.draftKey]) state.draftEdits[state.draftKey].clear();
         if (state.preset && state.preset.id === payload.id) {
           state.editedParameters.clear();
           state.loadedProgress = state.params.progress;
@@ -143,9 +165,11 @@
         if (["apply", "update", "generateBackground"].includes(payload.action)) ZxTCollections.record("core:" + payload.id);
         if (payload.action === "yuText" && payload.operation === "apply") ZxTCollections.record("yu:" + payload.id);
       }
+      if (r.changed > 0 && r.severity === "warning") state.recovery = true;
       if (r.message) notice(r.message, r.severity || "success");
       return r;
     } catch (e) {
+      if (mutates(payload) && /timeout|timed out|empty|json|evalscript|response|connection/i.test(e.message)) state.recovery = true;
       notice(e.message, "error");
       return null;
     } finally {
@@ -160,15 +184,25 @@
     return e;
   }
   document.addEventListener("zxt-open-animation", () => close());
+  function saveDraft() {
+    if (state.preset && state.draftKey) state.inspectorDrafts[state.draftKey] = {
+      params: Object.assign({}, state.params), loaded: state.loadedInstance,
+      edited: Array.from(state.editedParameters), dirty: state.dirty
+    };
+  }
   function close() {
     if (state.busy) return;
+    saveDraft();
     $("inspector").hidden = true;
     $("workspace").classList.remove("inspecting");
+    if (window.ZxTWorkspace) ZxTWorkspace.closed();
     MotionPreview.play($("preview"), false);
   }
   function tab(name) {
+    if (state.busy) return;
     if (name === "Text") name = "YU";
     state.tab = name;
+    if (window.ZxTWorkspace) ZxTWorkspace.navigate(name);
     $("collection-filters").hidden = !["YU", "Background"].includes(name);
     close();
     $("library").hidden = !["YU", "Background"].includes(name);
@@ -189,7 +223,7 @@
       b.setAttribute("aria-pressed", String(b.dataset.tab === name));
     });
     if (["YU", "Background"].includes(name)) {
-      state.query = "";
+
       $("library-kicker").textContent =
         name === "YU" ? "TEXT TOOLS FX" : "SOLIDGEN";
       $("library-title").textContent =
@@ -200,7 +234,8 @@
           : "Choose a style to generate its own background layer.";
       render();
     }
-    document.querySelector("main").scrollTop = 0;
+    if (window.ZxTWorkspace) ZxTWorkspace.restore();
+    else document.querySelector("main").scrollTop = 0;
   }
   function render() {
     MotionPreview.clear();
@@ -232,46 +267,11 @@
         el("h2", "", p.name),
         el("p", "", p.description),
       );
-      const actions = el("div", "card-actions"),
-        button = el("button", "customize", "Customize"),
-        apply = el(
-          "button",
-          "primary card-apply",
-          p.category === "Background"
-            ? "Generate Background"
-            : "Apply / Update",
-        );
+      const actions = el("div", "card-actions"), button = el("button", "customize", "Select");
       button.onclick = () => open(p);
-      apply.dataset.host = "";
-      apply.dataset.preset = p.id;
-      apply.setAttribute(
-        "aria-label",
-        (p.category === "Background" ? "Generate Background: " : "Apply FX: ") +
-          p.name,
-      );
-      apply.onclick = () => {
-        if (state.busy || state.draftInvalid[p.id]) return;
-        const values = {};
-        p.parameters.forEach(
-          (d) =>
-            (values[d.id] =
-              state.drafts[p.id] && state.drafts[p.id][d.id] !== undefined
-                ? state.drafts[p.id][d.id]
-                : d.default),
-        );
-        action({
-          action: p.category === "Background" ? "generateBackground" : "apply",
-          id: p.id,
-          params: values,
-          editedParameters: state.draftEdits[p.id] ? Array.from(state.draftEdits[p.id]) : undefined,
-          editProgress: !!(state.draftEdits[p.id] && state.draftEdits[p.id].has("progress")),
-          editChoice: !!(state.draftEdits[p.id] && state.draftEdits[p.id].has("choice")),
-          smart: true,
-          layout: $("control-layout").value || "compact",
-        });
-      };
-      actions.append(button, apply);
+      actions.append(button);
       content.appendChild(actions);
+      article.dataset.preset = p.id;
       article.append(view, content, ZxTCollections.button("core:" + p.id, p.name));
       $("cards").appendChild(article);
       MotionPreview.attach(canvas, p);
@@ -427,22 +427,30 @@
   function open(p, values, loaded) {
     if (state.busy) return;
     if (window.MotionAstraYUUI) window.MotionAstraYUUI.setVisible(state.tab === "YU");
-    values = values || state.drafts[p.id];
+    saveDraft();
+    state.draftKey = window.ZxTWorkspace ? ZxTWorkspace.draftKey(p.id) : p.id;
+    const cached = !values && !loaded && state.inspectorDrafts[state.draftKey];
+    if (cached) { values = cached.params; loaded = cached.loaded; }
+    values = values || state.drafts[state.draftKey];
+    state.loadedInstance = loaded || null;
+    state.stale = false;
     state.preset = p;
     state.target = loaded ? loaded.target : null;
     state.loadedLayout = loaded ? loaded.layout : null;
     state.loadedProgress = loaded ? loaded.params.progress : null;
     state.loadedChoice = loaded ? loaded.params.choice : null;
     state.dirty = false;
-    state.editedParameters = loaded ? new Set() : (state.draftEdits[p.id] || new Set());
-    state.draftEdits[p.id] = state.editedParameters;
+    state.editedParameters = loaded ? new Set() : (state.draftEdits[state.draftKey] || new Set());
+    if (cached) { state.editedParameters = new Set(cached.edited); state.dirty = cached.dirty; }
+    state.draftEdits[state.draftKey] = state.editedParameters;
     state.params = {};
     p.parameters.forEach(
       (d) =>
         (state.params[d.id] =
           values && values[d.id] !== undefined ? values[d.id] : d.default),
     );
-    state.drafts[p.id] = state.params;
+    state.drafts[state.draftKey] = state.params;
+    document.querySelectorAll(".card").forEach(card => card.classList.toggle("selected", card.dataset.preset === p.id));
     $("fx-title").textContent = p.name;
     $("inspector-mode").textContent = loaded
       ? "FX TWEAKER"
@@ -463,9 +471,11 @@
     $("parameter-search").value = "";
     $("fx-description").textContent = p.description;
     $("apply").textContent =
-      p.category === "Background" ? "Generate Background" : "Apply / Update";
-    $("update").textContent = loaded ? "Update selected FX" : "Update";
+      p.category === "Background" ? "Generate Background" : "Apply";
+    $("update").textContent = "Update";
+    $("update").hidden = !loaded;
     $("structural-help").hidden = !p.parameters.some((d) => d.id === "count");
+    if (window.ZxTWorkspace) ZxTWorkspace.opened();
     $("inspector").hidden = false;
     $("workspace").classList.add("inspecting");
     parameters();
@@ -482,18 +492,19 @@
     $("inspector").scrollTop = 0;
     $("close").focus();
   }
-  async function load() {
-    const r = await action({ action: "load" });
+  async function load(target) {
+    const r = await action({ action: "load", target: target && target.token ? target : undefined });
     if (r && r.id) {
       const p = data.presets
         .concat(data.legacy || [])
         .find((p) => p.id === r.id);
       if (p) {
-        tab("Tools");
+        if (state.tab !== (p.category === "Background" ? "Background" : "YU")) tab(p.category === "Background" ? "Background" : "YU");
         open(p, r.params, r);
       }
     }
   }
+  $("recovery-continue").onclick = () => { state.recovery = false; refresh(); };
   $("tweaker-load").onclick = load;
   $("compact-fx").onclick = async () => {
     if (!state.target) return;
@@ -524,13 +535,15 @@
   function tool(name, extra = {}) {
     return action(Object.assign({ action: "tool", name }, extra));
   }
+  $("close").textContent = "← Back to Library";
   $("close").onclick = close;
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") close();
   });
-  $("apply").onclick = () => {
-    if (state.preset && !state.invalid.size)
-      action({
+  $("apply").onclick = async () => {
+    if (state.preset && !state.invalid.size) {
+      const id = state.preset.id;
+      const r = await action({
         action:
           state.preset.category === "Background"
             ? "generateBackground"
@@ -543,6 +556,10 @@
         smart: true,
         layout: $("control-layout").value || "compact",
       });
+      const selection = r && r.changed > 0 && r.selection;
+      const row = selection && selection.total === 1 && selection.layers[0];
+      if (row && row.core && row.core.id === id) await load(row.core.target);
+    }
   };
   $("update").onclick = async () => {
     if (state.preset && !state.invalid.size) {
@@ -552,16 +569,18 @@
         id: state.preset.id,
         params: state.params,
         target: state.target,
+        revision: state.loadedInstance && state.loadedInstance.revision,
         editChoice: state.editedParameters.has("choice"),
         editProgress: state.editedParameters.has("progress"),
         smart: true,
         layout: $("control-layout").value || "compact",
       });
-      if (r && r.changed) {
+      if (r && r.changed && r.severity !== "warning") {
         state.dirty = false;
         state.editedParameters.clear();
         state.loadedProgress = state.params.progress;
         state.loadedChoice = state.params.choice;
+        await load(state.target);
       }
     }
   };
@@ -577,10 +596,11 @@
   };
   $("reset").onclick = () => {
     if (state.preset) {
-      delete state.drafts[state.preset.id];
+      delete state.drafts[state.draftKey];
       const current = state.target
         ? {
             target: state.target,
+            revision: state.loadedInstance && state.loadedInstance.revision,
             layout: state.loadedLayout,
             layerName: $("loaded-layer").textContent,
             params: { progress: state.loadedProgress, choice: state.loadedChoice },
@@ -589,6 +609,7 @@
       open(state.preset, {}, current);
       state.preset.parameters.forEach(d => state.editedParameters.add(d.id));
       state.dirty = true;
+      busy(state.busy);
     }
   };
   $("replay").onclick = preview;
@@ -740,16 +761,16 @@
     };
   }
   if (window.MotionCurve)
-    window.MotionCurve.init({ action: action, ready: () => bridge.isReady() });
+    window.MotionCurve.init({ action: action, ready: () => bridge.isReady() && !state.recovery });
   if (window.MotionAstraYUUI)
     window.MotionAstraYUUI.init({
       action: action,
-      ready: () => bridge.isReady(),
+      ready: () => bridge.isReady() && !state.recovery,
     });
   if (window.MotionAstraCreate)
     window.MotionAstraCreate.init({
       action,
-      ready: () => bridge.isReady(),
+      ready: () => bridge.isReady() && !state.recovery,
       notice,
     });
   disclosure("fold-nav", "nav", "ma2-nav", "Menu");
@@ -773,6 +794,7 @@
       busy(state.busy);
     });
   }
+  if (window.ZxTWorkspace) ZxTWorkspace.init(tab);
   tab("YU");
   busy(false);
   refresh();

@@ -235,13 +235,48 @@ nav,#quick{background:var(--panel)}
 #yu-selection-guidance,.animation-settings-guide{font-size:11px;color:var(--muted);line-height:1.5}
 #selected-layer-inspector{padding:0;background:transparent}
 .yu-card .favorite-toggle{width:28px;height:28px;padding:0;font-size:20px}
+
+/* Studio workspace: one browsing scroll region and one Inspector slot. */
+.studio-subnav { display:flex; gap:6px; padding:6px 0 0; }
+.studio-subnav button { flex:1; min-width:0; }
+#workspace, #workspace > main { min-width:0; }
+#workspace > #yu-editor { min-width:0; flex:1; display:grid; grid-template-rows:minmax(0,1fr) auto; overflow:hidden; margin:0; padding:0 12px; border-left:1px solid var(--line); }
+#workspace > #yu-editor .yu-edit-scroll { min-height:0; overflow:auto; }
+#workspace > #yu-editor .yu-actions { position:static; }
+#workspace.has-editor > main { display:none; }
+#yu, #yu.yu-inspecting { display:block; height:auto; }
+#yu-browser { overflow:visible; }
+#yu.yu-inspecting #yu-browser { display:block; }
+#workspace > #inspector { min-width:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
+#selected-layer-inspector { max-height:120px; overflow:auto; }
+#selection-summary { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.card-actions { grid-template-columns:1fr; }
+.card-actions .customize, .yu-customize { width:100%; }
+.card.selected,.yu-card.selected { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent-border); }
+#inspector-empty { display:none; order:2; }
+#quick { max-height:35vh; overflow:auto; }
+#recovery { padding:8px; border:1px solid var(--accent-border); font-size:11px; }
+#recovery button { margin-top:6px; width:100%; }
+@media (min-width:760px) {
+  #workspace.has-editor > main, #workspace.inspecting > main { display:block; }
+  #workspace > #inspector, #workspace > #yu-editor { flex:0 0 300px; width:300px; }
+  #yu.yu-inspecting { display:block; }
+  #workspace.library-workspace:not(.has-editor) > #inspector-empty { display:block; flex:0 0 300px; width:300px; box-sizing:border-box; padding:24px; border-left:1px solid var(--line); overflow:auto; color:var(--muted); }
+  #inspector-empty h2 { color:var(--text); font-size:18px; }
+  #inspector-empty p { font-size:12px; line-height:1.6; }
+}
+@media (max-width:759px) {
+  #workspace.has-editor > main { display:none; }
+  #workspace > #inspector, #workspace > #yu-editor { width:100%; flex:1; }
+}
+[hidden] { display:none !important; }
 </style>
   </head>
   <body class="catalog">
     <header>
       <a class="brand" href="index.html"
         ><span class="brand-icon"><i data-lucide="asterisk"></i></span
-        >ZxT-Motions <b>3.6.0</b></a
+        >ZxT-Motions <b>3.6.1</b></a
       >
       <div class="header-actions">
         <button data-tab="Settings" aria-label="Settings" title="Appearance and settings"><i data-lucide="settings"></i></button>
@@ -279,14 +314,19 @@ nav,#quick{background:var(--panel)}
         <div id="search-results"></div>
       </div>
       <div class="category-tabs" aria-label="Workspaces">
-        <button class="active" data-tab="YU" title="Text Animate and Text Tools FX">Text</button>
-        <button data-tab="Background" title="SolidGen backgrounds">Solid</button>
-        <button data-tab="Tools" title="Quick Tools and FX Tweaker">Tools</button>
-        <button data-tab="Curve" title="Motion Curve">Curve</button>
-        <button data-tab="Create" title="Create text, shapes and solid layers">Create</button>
+        <button data-workspace="Library" class="active">Library</button>
+        <button data-workspace="Motion">Motion</button>
+        <button data-tab="Create" data-workspace="Create">Create</button>
+      </div>
+      <div id="library-navigation" class="studio-subnav" aria-label="Library type">
+        <button data-tab="YU">Text</button><button data-tab="Background">SolidGen</button>
+      </div>
+      <div id="motion-navigation" class="studio-subnav" aria-label="Motion tools" hidden>
+        <button data-tab="Tools">Quick Tools</button><button data-tab="Curve">Curve</button>
       </div>
     </nav>
     <div id="quick">
+      <div id="recovery" hidden role="status"><span id="recovery-message"></span><button id="recovery-continue">I checked the timeline · Continue</button></div>
       <div class="utility-row">
         <button id="quick-anchor" data-host>
           <i data-lucide="crosshair"></i>Center anchor</button
@@ -297,6 +337,7 @@ nav,#quick{background:var(--panel)}
       <details id="selected-layer-inspector"><summary id="selection-summary">Layer Inspector</summary><div id="selection-content"></div><button id="selection-refresh" data-host>Refresh selection</button></details>
     </div>
     <div id="workspace">
+      <aside id="inspector-empty" aria-label="Inspector"><span class="eyebrow">INSPECTOR</span><h2>Make it move.</h2><p>Select a preset to preview and configure it. Select a layer in After Effects, then Apply.</p><p>Already applied? Use Load settings to update that instance here.</p></aside>
       <main>
         <section id="create" hidden aria-label="Create layers">
           <div class="eyebrow">START WITH SOMETHING SIMPLE</div>
@@ -2337,7 +2378,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 </script>
     <script>
 window.MA_PRESETS = {
-  "version": "3.6.0",
+  "version": "3.6.1",
   "presets": [
     {
       "id": "counter",
@@ -7125,14 +7166,14 @@ document.addEventListener('visibilitychange',run);return {attach,play,clear,rend
 
 </script>
     <script>
-/* MotionAstra CEP transport v3.6.0.
+/* MotionAstra CEP transport v3.6.1.
  * Host files load by absolute path; all replies are tagged and request-correlated.
  * Empty callbacks recover the stored reply, NEVER replay the host mutation.
  */
 (function (root) {
   "use strict";
-  const VERSION = "3.6.0";
-  const BUILD = "3.6.0";
+  const VERSION = "3.6.1";
+  const BUILD = "3.6.1";
   const PREFIX = "MAFX1:";
   const ERROR_PREFIX = "MAFX1E:";
   const available = !!root.__adobe_cep__;
@@ -7643,10 +7684,14 @@ window.MotionAstraYUUI = (() => {
   let api,
     preset = core.presets[0],
     target = null,
+    dirty = false,
+    draftKey = null,
+    loadedInstance = null,
     frame = 0,
     visible = false,
     busy = false,
     activeCanvas = null;
+  const drafts = {};
   const fields = {
     mode: ["IN", "OUT", "BOTH"],
     group: ["chars", "charsNoSpaces", "words", "lines", "all"],
@@ -7712,12 +7757,14 @@ window.MotionAstraYUUI = (() => {
   }
   function sync() {
     $("yu-apply").hidden = !!target;
+    $("yu-update").hidden = !target;
+    $("yu-update").textContent = dirty ? "Update" : "Up to date";
     ["yu-apply", "yu-update", "yu-clear"].forEach(
       (id) =>
         ($(id).disabled =
           busy ||
           !api.ready() ||
-          (id === "yu-update" && !target) ||
+          (id === "yu-update" && (!target || !dirty)) ||
           (["yu-apply", "yu-update"].includes(id) && !valid())),
     );
     if (window.ZxTSelection) {
@@ -7727,6 +7774,15 @@ window.MotionAstraYUUI = (() => {
         $(id).title = info.reason;
         if (id === (target ? "yu-update" : "yu-apply")) $("yu-selection-guidance").textContent = info.reason;
       });
+      if (target && loadedInstance && loadedInstance.revision) {
+        const c = ZxTSelection.context(), row = c && c.total === 1 && c.layers[0];
+        const instance = row && row.animations.find(a => a.target.token === target.token);
+        if (instance && instance.revision !== loadedInstance.revision) {
+          $("yu-update").disabled = true;
+          $("yu-selection-guidance").textContent = "Animation changed in AE. Load settings before updating; your draft is retained.";
+        }
+      }
+      if (target) $("yu-clear").disabled = $("yu-clear").disabled || !ZxTSelection.eligibility("YU", preset.id, "update", target).allowed;
       document.querySelectorAll(".yu-card-apply").forEach(b => {
         b.disabled = busy || !api.ready() || !ZxTSelection.eligibility("YU", b.dataset.preset, "apply", null).allowed;
       });
@@ -7863,22 +7919,9 @@ window.MotionAstraYUUI = (() => {
       button.onclick = () => {
         if (!busy) open(p);
       };
-      const applyButton = node(
-        "button",
-        "primary yu-card-apply",
-        "Apply animation",
-      );
-      applyButton.dataset.host = "";
-      applyButton.dataset.preset = p.id;
-      applyButton.disabled = busy || !api.ready();
-      applyButton.onclick = () =>
-        api.action({
-          action: "yuText",
-          operation: "apply",
-          id: p.id,
-          options: o,
-        });
-      card.append(canvas, tag, title, button, applyButton, ZxTCollections.button("yu:" + p.id, p.name));
+      button.textContent = "Select";
+      card.dataset.preset = String(p.id);
+      card.append(canvas, tag, title, button, ZxTCollections.button("yu:" + p.id, p.name));
       card.onmouseenter = () => play(canvas, p, o);
       card.onmouseleave = () => {
         if (activeCanvas === canvas) {
@@ -7892,15 +7935,27 @@ window.MotionAstraYUUI = (() => {
     if (!list.length)
       $("yu-cards").appendChild(node("p", "", ZxTCollections.empty()));
   }
+  function saveDraft() {
+    if (draftKey) drafts[draftKey] = {options:values(),loaded:loadedInstance,dirty:dirty};
+  }
   function open(p, o, loaded) {
+    saveDraft();
+    draftKey = window.ZxTWorkspace ? ZxTWorkspace.draftKey("yu:" + p.id) : String(p.id);
+    const cached = !o && !loaded && drafts[draftKey];
+    if (cached) { o = cached.options; loaded = cached.loaded; }
+    loadedInstance = loaded || null;
+    dirty = cached ? cached.dirty : false;
     stop();
     document.dispatchEvent(new Event("zxt-open-animation"));
     $("yu").classList.add("yu-inspecting");
+    document.querySelectorAll(".yu-card").forEach(card => card.classList.toggle("selected", card.dataset.preset === String(p.id)));
     preset = p;
     target = loaded ? loaded.target : null;
     $("yu-apply").hidden = !!loaded;
     $("yu-update").textContent = loaded ? "Save changes" : "Update loaded FX";
     $("yu-browser").hidden = false;
+    if (window.ZxTWorkspace) ZxTWorkspace.opened();
+    $("yu-update").hidden = !loaded;
     $("yu-editor").hidden = false;
     $("yu-title").textContent = p.name;
     $("yu-target").textContent = loaded
@@ -7913,10 +7968,11 @@ window.MotionAstraYUUI = (() => {
     sync();
     play($("yu-preview"), p, values());
   }
-  async function load(phase) {
+  async function load(phase, expectedTarget) {
     const r = await api.action({
       action: "yuText",
       operation: "load",
+      target: expectedTarget,
       phase: phase || ($("yu-mode").value === "OUT" ? "OUT" : "IN"),
     });
     if (r && r.id) open(core.presets[r.id - 1], r.options, r);
@@ -7929,8 +7985,13 @@ window.MotionAstraYUUI = (() => {
       id: preset.id,
       options: values(),
       target: update ? target : null,
+      revision: update && loadedInstance ? loadedInstance.revision : undefined,
     });
-    if (r && r.changed && update) await load();
+    const selection = r && r.changed > 0 && r.selection;
+    const row = selection && selection.total === 1 && selection.layers[0];
+    const phase = $("yu-mode").value === "OUT" ? "OUT" : "IN";
+    const instance = row && row.animations.find(a => a.id === preset.id && a.phase === phase);
+    if (instance) await load(phase, instance.target);
   }
   function init(adapter) {
     api = adapter;
@@ -7951,16 +8012,19 @@ window.MotionAstraYUUI = (() => {
       $("yu-category").appendChild(e);
     });
     $("yu-category").onchange = () => { $("text-animate-group").open = true; render(); };
+    $("yu-back").textContent = "← Back to Library";
     $("yu-back").onclick = () => {
+      saveDraft();
       stop();
       $("yu").classList.remove("yu-inspecting");
       $("yu-editor").hidden = true;
       $("yu-browser").hidden = false;
+      if (window.ZxTWorkspace) ZxTWorkspace.closed();
     };
     $("yu-apply").onclick = () => apply(false);
     $("yu-update").onclick = () => apply(true);
     $("yu-clear").onclick = async () => {
-      const r = await api.action({ action: "yuText", operation: "clear" });
+      const r = await api.action({ action: "yuText", operation: "clear", target: target });
       if (r && r.changed) {
         target = null;
         sync();
@@ -7970,6 +8034,7 @@ window.MotionAstraYUUI = (() => {
       if (valid()) play($("yu-preview"), preset, values());
     };
     $("yu-controls").oninput = () => {
+      dirty = true;
       sync();
       if (valid()) play($("yu-preview"), preset, values());
     };
@@ -7991,9 +8056,10 @@ window.MotionAstraYUUI = (() => {
       if (p && !busy) open(p);
     },
     setVisible(on) {
+      saveDraft();
       visible = on;
       stop();
-      if (on) {
+      {
         $("yu").classList.remove("yu-inspecting");
         $("yu-editor").hidden = true;
         $("yu-browser").hidden = false;
@@ -8504,7 +8570,7 @@ window.ZxTSelection = (() => {
     if(current.truncated){const p=document.createElement('p');p.textContent='Showing the first 50 selected layers.';box.appendChild(p);}
   }
   function update(response,ready){connected=ready;current=response&&response.selection||null;const next=JSON.stringify([connected,current]);if(next!==signature){signature=next;render();}}
-  return {init(a){adapter=a;$('selection-refresh').onclick=a.refresh;render();},update,eligibility};
+  return {context(){ return current; },init(a){adapter=a;$('selection-refresh').onclick=a.refresh;render();},update,eligibility};
 })();
 
 </script>
@@ -8550,6 +8616,52 @@ window.ZxTCollections = (() => {
 
 </script>
     <script>
+/* Shared responsive shell. Engine adapters retain ownership of their forms. */
+window.ZxTWorkspace = (() => {
+  const $ = id => document.getElementById(id);
+  const main = document.querySelector('main');
+  let origin = null, scroll = 0, section = 'YU', library = 'YU', motion = 'Tools';
+  const positions = {};
+  $('workspace').appendChild($('yu-editor'));
+  function opened() {
+    if (!origin) { origin = document.activeElement; scroll = main.scrollTop; }
+    $('workspace').classList.add('has-editor');
+  }
+  function closed() {
+    $('workspace').classList.remove('has-editor');
+    if (origin) main.scrollTop = scroll;
+    if (origin && origin.isConnected) origin.focus({preventScroll:true});
+    origin = null;
+  }
+  function navigate(name) {
+    positions[section] = origin ? scroll : main.scrollTop;
+    section = name;
+    if (["YU","Background"].includes(name)) library = name;
+    if (["Tools","Curve"].includes(name)) motion = name;
+    const group = ['YU','Background'].includes(name) ? 'Library' : ['Tools','Curve'].includes(name) ? 'Motion' : name;
+    $('workspace').classList.toggle('library-workspace', group === 'Library');
+    $('library-navigation').hidden = group !== 'Library';
+    $('motion-navigation').hidden = group !== 'Motion';
+    document.querySelectorAll('[data-workspace]').forEach(b => {
+      b.classList.toggle('active', b.dataset.workspace === group);
+      b.setAttribute('aria-pressed', String(b.dataset.workspace === group));
+    });
+    $('yu-editor').hidden = true;
+    closed();
+  }
+  return {opened,closed,navigate,draftKey(id) {
+    const c = window.ZxTSelection && ZxTSelection.context();
+    return id + ':' + JSON.stringify(c ? [c.compId,c.layers.map(l => [l.id,l.core && l.core.target,l.animations])] : null);
+  },restore() { main.scrollTop = positions[section] || 0; },init(go) {
+    document.querySelectorAll('[data-workspace]').forEach(b => b.onclick = () => {
+      const g = b.dataset.workspace;
+      go(g === 'Library' ? library : g === 'Motion' ? motion : 'Create');
+    });
+  }};
+})();
+
+</script>
+    <script>
 (() => {
   "use strict";
   const $ = (id) => document.getElementById(id),
@@ -8562,6 +8674,11 @@ window.ZxTCollections = (() => {
       busy: false,
       query: "",
       drafts: {},
+      draftKey: null,
+      inspectorDrafts: {},
+      loadedInstance: null,
+      stale: false,
+      recovery: false,
       draftEdits: {},
       draftInvalid: {},
       invalid: new Set(),
@@ -8611,8 +8728,9 @@ window.ZxTCollections = (() => {
   }
   function busy(value) {
     state.busy = value;
+    $("workspace").setAttribute("aria-busy", String(value));
     if (state.preset)
-      state.draftInvalid[state.preset.id] = state.invalid.size > 0;
+      state.draftInvalid[state.draftKey] = state.invalid.size > 0;
     MotionPreview.suspend(value);
     document
       .querySelectorAll("[data-host]")
@@ -8622,7 +8740,13 @@ window.ZxTCollections = (() => {
       $("compact-fx").disabled ||
       !state.target ||
       state.loadedLayout !== "legacy";
-    $("update").disabled = $("update").disabled || state.invalid.size > 0;
+    $("update").disabled = $("update").disabled || state.invalid.size > 0 || (state.target && !state.dirty);
+    if (state.target && state.loadedInstance && window.ZxTSelection) {
+      const c = ZxTSelection.context(), row = c && c.total === 1 && c.layers[0];
+      state.stale = !!(row && row.core && row.core.target.token === state.target.token && state.loadedInstance.revision && row.core.revision !== state.loadedInstance.revision);
+      $("update").disabled = $("update").disabled || state.stale;
+    }
+    if (state.target) $("inspector-mode").textContent = state.dirty ? "APPLIED · UNSAVED CHANGES" : "APPLIED · UP TO DATE";
     document.querySelectorAll(".card-apply").forEach((b) => {
       b.disabled = b.disabled || !!state.draftInvalid[b.dataset.preset];
     });
@@ -8641,13 +8765,19 @@ window.ZxTCollections = (() => {
       if (state.preset) {
         const info = gate($("apply"), state.preset.category, state.preset.id, "apply", null);
         const updateInfo = gate($("update"), state.preset.category, state.preset.id, "update", state.target);
-        $("target-guidance").textContent = state.target ? updateInfo.reason : info.reason;
+        $("target-guidance").textContent = state.stale ? "Settings changed in AE. Load settings to refresh; your draft is retained." : state.target ? updateInfo.reason : info.reason;
       }
       document.querySelectorAll(".card-apply").forEach(b => {
         const p = data.presets.find(p => p.id === b.dataset.preset);
         if (p) gate(b, p.category, p.id, "apply", null);
       });
     }
+    $("recovery").hidden = !state.recovery;
+    if (state.recovery) {
+      $("recovery-message").textContent = "Check the result in AE before retrying. Load settings or inspect the timeline; no automatic retry was sent.";
+      document.querySelectorAll("[data-host]").forEach(b => { if (!["load-fx","selection-refresh","tweaker-load"].includes(b.id)) b.disabled = true; });
+    }
+    $("recovery-continue").disabled = value;
     if (window.MotionAstraYUUI) window.MotionAstraYUUI.setBusy(value);
     if (window.MotionCurve) window.MotionCurve.setBusy(value);
     if (window.MotionAstraCreate) window.MotionAstraCreate.setBusy(value);
@@ -8677,13 +8807,17 @@ window.ZxTCollections = (() => {
     }
     busy(state.busy);
   }
+  function mutates(payload) {
+    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
+  }
   async function action(payload) {
-    if (state.busy) return null;
+    if (state.busy || (state.recovery && mutates(payload))) return null;
     busy(true);
     try {
       const r = await bridge.call(JSON.parse(JSON.stringify(payload)));
-      if (r.changed > 0 && ["apply", "update", "generateBackground"].includes(payload.action)) {
-        if (state.draftEdits[payload.id]) state.draftEdits[payload.id].clear();
+      if (r.selection && window.ZxTSelection) ZxTSelection.update({selection:r.selection}, true);
+      if (r.changed > 0 && r.severity !== "warning" && ["apply", "update", "generateBackground"].includes(payload.action)) {
+        if (state.draftEdits[state.draftKey]) state.draftEdits[state.draftKey].clear();
         if (state.preset && state.preset.id === payload.id) {
           state.editedParameters.clear();
           state.loadedProgress = state.params.progress;
@@ -8695,9 +8829,11 @@ window.ZxTCollections = (() => {
         if (["apply", "update", "generateBackground"].includes(payload.action)) ZxTCollections.record("core:" + payload.id);
         if (payload.action === "yuText" && payload.operation === "apply") ZxTCollections.record("yu:" + payload.id);
       }
+      if (r.changed > 0 && r.severity === "warning") state.recovery = true;
       if (r.message) notice(r.message, r.severity || "success");
       return r;
     } catch (e) {
+      if (mutates(payload) && /timeout|timed out|empty|json|evalscript|response|connection/i.test(e.message)) state.recovery = true;
       notice(e.message, "error");
       return null;
     } finally {
@@ -8712,15 +8848,25 @@ window.ZxTCollections = (() => {
     return e;
   }
   document.addEventListener("zxt-open-animation", () => close());
+  function saveDraft() {
+    if (state.preset && state.draftKey) state.inspectorDrafts[state.draftKey] = {
+      params: Object.assign({}, state.params), loaded: state.loadedInstance,
+      edited: Array.from(state.editedParameters), dirty: state.dirty
+    };
+  }
   function close() {
     if (state.busy) return;
+    saveDraft();
     $("inspector").hidden = true;
     $("workspace").classList.remove("inspecting");
+    if (window.ZxTWorkspace) ZxTWorkspace.closed();
     MotionPreview.play($("preview"), false);
   }
   function tab(name) {
+    if (state.busy) return;
     if (name === "Text") name = "YU";
     state.tab = name;
+    if (window.ZxTWorkspace) ZxTWorkspace.navigate(name);
     $("collection-filters").hidden = !["YU", "Background"].includes(name);
     close();
     $("library").hidden = !["YU", "Background"].includes(name);
@@ -8741,7 +8887,7 @@ window.ZxTCollections = (() => {
       b.setAttribute("aria-pressed", String(b.dataset.tab === name));
     });
     if (["YU", "Background"].includes(name)) {
-      state.query = "";
+
       $("library-kicker").textContent =
         name === "YU" ? "TEXT TOOLS FX" : "SOLIDGEN";
       $("library-title").textContent =
@@ -8752,7 +8898,8 @@ window.ZxTCollections = (() => {
           : "Choose a style to generate its own background layer.";
       render();
     }
-    document.querySelector("main").scrollTop = 0;
+    if (window.ZxTWorkspace) ZxTWorkspace.restore();
+    else document.querySelector("main").scrollTop = 0;
   }
   function render() {
     MotionPreview.clear();
@@ -8784,46 +8931,11 @@ window.ZxTCollections = (() => {
         el("h2", "", p.name),
         el("p", "", p.description),
       );
-      const actions = el("div", "card-actions"),
-        button = el("button", "customize", "Customize"),
-        apply = el(
-          "button",
-          "primary card-apply",
-          p.category === "Background"
-            ? "Generate Background"
-            : "Apply / Update",
-        );
+      const actions = el("div", "card-actions"), button = el("button", "customize", "Select");
       button.onclick = () => open(p);
-      apply.dataset.host = "";
-      apply.dataset.preset = p.id;
-      apply.setAttribute(
-        "aria-label",
-        (p.category === "Background" ? "Generate Background: " : "Apply FX: ") +
-          p.name,
-      );
-      apply.onclick = () => {
-        if (state.busy || state.draftInvalid[p.id]) return;
-        const values = {};
-        p.parameters.forEach(
-          (d) =>
-            (values[d.id] =
-              state.drafts[p.id] && state.drafts[p.id][d.id] !== undefined
-                ? state.drafts[p.id][d.id]
-                : d.default),
-        );
-        action({
-          action: p.category === "Background" ? "generateBackground" : "apply",
-          id: p.id,
-          params: values,
-          editedParameters: state.draftEdits[p.id] ? Array.from(state.draftEdits[p.id]) : undefined,
-          editProgress: !!(state.draftEdits[p.id] && state.draftEdits[p.id].has("progress")),
-          editChoice: !!(state.draftEdits[p.id] && state.draftEdits[p.id].has("choice")),
-          smart: true,
-          layout: $("control-layout").value || "compact",
-        });
-      };
-      actions.append(button, apply);
+      actions.append(button);
       content.appendChild(actions);
+      article.dataset.preset = p.id;
       article.append(view, content, ZxTCollections.button("core:" + p.id, p.name));
       $("cards").appendChild(article);
       MotionPreview.attach(canvas, p);
@@ -8979,22 +9091,30 @@ window.ZxTCollections = (() => {
   function open(p, values, loaded) {
     if (state.busy) return;
     if (window.MotionAstraYUUI) window.MotionAstraYUUI.setVisible(state.tab === "YU");
-    values = values || state.drafts[p.id];
+    saveDraft();
+    state.draftKey = window.ZxTWorkspace ? ZxTWorkspace.draftKey(p.id) : p.id;
+    const cached = !values && !loaded && state.inspectorDrafts[state.draftKey];
+    if (cached) { values = cached.params; loaded = cached.loaded; }
+    values = values || state.drafts[state.draftKey];
+    state.loadedInstance = loaded || null;
+    state.stale = false;
     state.preset = p;
     state.target = loaded ? loaded.target : null;
     state.loadedLayout = loaded ? loaded.layout : null;
     state.loadedProgress = loaded ? loaded.params.progress : null;
     state.loadedChoice = loaded ? loaded.params.choice : null;
     state.dirty = false;
-    state.editedParameters = loaded ? new Set() : (state.draftEdits[p.id] || new Set());
-    state.draftEdits[p.id] = state.editedParameters;
+    state.editedParameters = loaded ? new Set() : (state.draftEdits[state.draftKey] || new Set());
+    if (cached) { state.editedParameters = new Set(cached.edited); state.dirty = cached.dirty; }
+    state.draftEdits[state.draftKey] = state.editedParameters;
     state.params = {};
     p.parameters.forEach(
       (d) =>
         (state.params[d.id] =
           values && values[d.id] !== undefined ? values[d.id] : d.default),
     );
-    state.drafts[p.id] = state.params;
+    state.drafts[state.draftKey] = state.params;
+    document.querySelectorAll(".card").forEach(card => card.classList.toggle("selected", card.dataset.preset === p.id));
     $("fx-title").textContent = p.name;
     $("inspector-mode").textContent = loaded
       ? "FX TWEAKER"
@@ -9015,9 +9135,11 @@ window.ZxTCollections = (() => {
     $("parameter-search").value = "";
     $("fx-description").textContent = p.description;
     $("apply").textContent =
-      p.category === "Background" ? "Generate Background" : "Apply / Update";
-    $("update").textContent = loaded ? "Update selected FX" : "Update";
+      p.category === "Background" ? "Generate Background" : "Apply";
+    $("update").textContent = "Update";
+    $("update").hidden = !loaded;
     $("structural-help").hidden = !p.parameters.some((d) => d.id === "count");
+    if (window.ZxTWorkspace) ZxTWorkspace.opened();
     $("inspector").hidden = false;
     $("workspace").classList.add("inspecting");
     parameters();
@@ -9034,18 +9156,19 @@ window.ZxTCollections = (() => {
     $("inspector").scrollTop = 0;
     $("close").focus();
   }
-  async function load() {
-    const r = await action({ action: "load" });
+  async function load(target) {
+    const r = await action({ action: "load", target: target && target.token ? target : undefined });
     if (r && r.id) {
       const p = data.presets
         .concat(data.legacy || [])
         .find((p) => p.id === r.id);
       if (p) {
-        tab("Tools");
+        if (state.tab !== (p.category === "Background" ? "Background" : "YU")) tab(p.category === "Background" ? "Background" : "YU");
         open(p, r.params, r);
       }
     }
   }
+  $("recovery-continue").onclick = () => { state.recovery = false; refresh(); };
   $("tweaker-load").onclick = load;
   $("compact-fx").onclick = async () => {
     if (!state.target) return;
@@ -9076,13 +9199,15 @@ window.ZxTCollections = (() => {
   function tool(name, extra = {}) {
     return action(Object.assign({ action: "tool", name }, extra));
   }
+  $("close").textContent = "← Back to Library";
   $("close").onclick = close;
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") close();
   });
-  $("apply").onclick = () => {
-    if (state.preset && !state.invalid.size)
-      action({
+  $("apply").onclick = async () => {
+    if (state.preset && !state.invalid.size) {
+      const id = state.preset.id;
+      const r = await action({
         action:
           state.preset.category === "Background"
             ? "generateBackground"
@@ -9095,6 +9220,10 @@ window.ZxTCollections = (() => {
         smart: true,
         layout: $("control-layout").value || "compact",
       });
+      const selection = r && r.changed > 0 && r.selection;
+      const row = selection && selection.total === 1 && selection.layers[0];
+      if (row && row.core && row.core.id === id) await load(row.core.target);
+    }
   };
   $("update").onclick = async () => {
     if (state.preset && !state.invalid.size) {
@@ -9104,16 +9233,18 @@ window.ZxTCollections = (() => {
         id: state.preset.id,
         params: state.params,
         target: state.target,
+        revision: state.loadedInstance && state.loadedInstance.revision,
         editChoice: state.editedParameters.has("choice"),
         editProgress: state.editedParameters.has("progress"),
         smart: true,
         layout: $("control-layout").value || "compact",
       });
-      if (r && r.changed) {
+      if (r && r.changed && r.severity !== "warning") {
         state.dirty = false;
         state.editedParameters.clear();
         state.loadedProgress = state.params.progress;
         state.loadedChoice = state.params.choice;
+        await load(state.target);
       }
     }
   };
@@ -9129,10 +9260,11 @@ window.ZxTCollections = (() => {
   };
   $("reset").onclick = () => {
     if (state.preset) {
-      delete state.drafts[state.preset.id];
+      delete state.drafts[state.draftKey];
       const current = state.target
         ? {
             target: state.target,
+            revision: state.loadedInstance && state.loadedInstance.revision,
             layout: state.loadedLayout,
             layerName: $("loaded-layer").textContent,
             params: { progress: state.loadedProgress, choice: state.loadedChoice },
@@ -9141,6 +9273,7 @@ window.ZxTCollections = (() => {
       open(state.preset, {}, current);
       state.preset.parameters.forEach(d => state.editedParameters.add(d.id));
       state.dirty = true;
+      busy(state.busy);
     }
   };
   $("replay").onclick = preview;
@@ -9292,16 +9425,16 @@ window.ZxTCollections = (() => {
     };
   }
   if (window.MotionCurve)
-    window.MotionCurve.init({ action: action, ready: () => bridge.isReady() });
+    window.MotionCurve.init({ action: action, ready: () => bridge.isReady() && !state.recovery });
   if (window.MotionAstraYUUI)
     window.MotionAstraYUUI.init({
       action: action,
-      ready: () => bridge.isReady(),
+      ready: () => bridge.isReady() && !state.recovery,
     });
   if (window.MotionAstraCreate)
     window.MotionAstraCreate.init({
       action,
-      ready: () => bridge.isReady(),
+      ready: () => bridge.isReady() && !state.recovery,
       notice,
     });
   disclosure("fold-nav", "nav", "ma2-nav", "Menu");
@@ -9325,6 +9458,7 @@ window.ZxTCollections = (() => {
       busy(state.busy);
     });
   }
+  if (window.ZxTWorkspace) ZxTWorkspace.init(tab);
   tab("YU");
   busy(false);
   refresh();

@@ -56,11 +56,11 @@ Release CI runs installer, rollback/integrity, WPF UI, ES3 parsing, modeled-host
 
 Download the new ZxT-Motions installer. Old online EXEs may reject release URLs after the repository rename. The folder `MotionAstra-FX`, bundle identity and backup paths intentionally retain their legacy names so existing installations are upgraded in place; saved project controls remain compatible.
 
-## Studio appearance (v3.6.0)
+## Studio appearance (v3.6.1)
 
 Open the header gear → Appearance and choose an accent: Orange, Lime Green, Light Blue, Burgundy or Plain White. The sun/moon button switches dark/light mode. Preferences are saved locally; reinstalling normally preserves them. These settings do not change FX or text colors in your project.
 
-Customize opens beside the library at 920 px or wider, or on its own at smaller widths. Choose Library to return. Both Text Tools FX and Text Animate headers collapse their collections. The standalone catalog includes the same Studio interface and works without a CDN.
+Choose Library for presets, Motion for Quick Tools/Curve, or Create for new layers. Select a preset to open its Inspector beside the library at 760 px or wider, or as a detail view at smaller widths. Back to Library restores browsing position. Apply/Generate loads the resulting single instance into Update mode. Update becomes available after changing a setting. Both Text Tools FX and Text Animate headers collapse their collections. The standalone catalog includes the same Studio interface and works without a CDN.
 
 ## v3.6 workflow check
 
@@ -69,3 +69,5 @@ Customize opens beside the library at 920 px or wider, or on its own at smaller 
 3. For keyed Progress/Choice, enable the corresponding manual/Choice mode and animate the native AE slider. Changing another panel setting must leave those keys unchanged. Editing that slider in the panel updates its value at the current playhead.
 4. Native color keyframes survive unrelated updates. Custom expressions and custom Text Animate phase keys are protected; edit those in AE or explicitly remove the animation before replacing it.
 5. Test on a duplicate project first. These automated tests model AE behavior; they cannot verify real AE rendering or every installed font/plugin.
+
+For validation coverage and native AE checks, see `docs/STUDIO_UI_VALIDATION.md`.

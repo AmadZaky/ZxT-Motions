@@ -81,6 +81,8 @@ jobs:
           npx playwright install chromium
           node tests/reliability-ui.cjs
           node tests/studio-ui.cjs
+          node tests/studio-binding.cjs
+          node tests/studio-workflow-ui.cjs
           node tests/ui.cjs
           node tests/checkbox-ui.cjs
           node tests/tweaker-ui.cjs

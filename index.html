@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <script src="js/theme.js"></script>
-    <title>ZxT-Motions 3.6.0 Alpha</title>
+    <title>ZxT-Motions 3.6.1 Alpha</title>
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/studio.css" />
   </head>
@@ -12,7 +12,7 @@
     <header>
       <a class="brand" href="index.html"
         ><span class="brand-icon"><i data-lucide="asterisk"></i></span
-        >ZxT-Motions <b>3.6.0</b></a
+        >ZxT-Motions <b>3.6.1</b></a
       >
       <div class="header-actions">
         <button data-tab="Settings" aria-label="Settings" title="Appearance and settings"><i data-lucide="settings"></i></button>
@@ -50,14 +50,19 @@
         <div id="search-results"></div>
       </div>
       <div class="category-tabs" aria-label="Workspaces">
-        <button class="active" data-tab="YU" title="Text Animate and Text Tools FX">Text</button>
-        <button data-tab="Background" title="SolidGen backgrounds">Solid</button>
-        <button data-tab="Tools" title="Quick Tools and FX Tweaker">Tools</button>
-        <button data-tab="Curve" title="Motion Curve">Curve</button>
-        <button data-tab="Create" title="Create text, shapes and solid layers">Create</button>
+        <button data-workspace="Library" class="active">Library</button>
+        <button data-workspace="Motion">Motion</button>
+        <button data-tab="Create" data-workspace="Create">Create</button>
+      </div>
+      <div id="library-navigation" class="studio-subnav" aria-label="Library type">
+        <button data-tab="YU">Text</button><button data-tab="Background">SolidGen</button>
+      </div>
+      <div id="motion-navigation" class="studio-subnav" aria-label="Motion tools" hidden>
+        <button data-tab="Tools">Quick Tools</button><button data-tab="Curve">Curve</button>
       </div>
     </nav>
     <div id="quick">
+      <div id="recovery" hidden role="status"><span id="recovery-message"></span><button id="recovery-continue">I checked the timeline · Continue</button></div>
       <div class="utility-row">
         <button id="quick-anchor" data-host>
           <i data-lucide="crosshair"></i>Center anchor</button
@@ -68,6 +73,7 @@
       <details id="selected-layer-inspector"><summary id="selection-summary">Layer Inspector</summary><div id="selection-content"></div><button id="selection-refresh" data-host>Refresh selection</button></details>
     </div>
     <div id="workspace">
+      <aside id="inspector-empty" aria-label="Inspector"><span class="eyebrow">INSPECTOR</span><h2>Make it move.</h2><p>Select a preset to preview and configure it. Select a layer in After Effects, then Apply.</p><p>Already applied? Use Load settings to update that instance here.</p></aside>
       <main>
         <section id="create" hidden aria-label="Create layers">
           <div class="eyebrow">START WITH SOMETHING SIMPLE</div>
@@ -809,6 +815,7 @@ ZxT-Motions</textarea
     <script src="js/search.js"></script>
     <script src="js/selection.js"></script>
     <script src="js/collections.js"></script>
+    <script src="js/workspace.js"></script>
     <script src="js/main.js"></script>
   </body>
 </html>

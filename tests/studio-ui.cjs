@@ -26,21 +26,21 @@ const assert=require('node:assert/strict'),path=require('node:path'),{pathToFile
  await page.locator('button[data-accent="lime"]').click();await page.locator('#theme-toggle').click();
  await page.waitForTimeout(250);await page.screenshot({path:'/tmp/zxt-studio-settings.png'});
  for(const width of [300,380,768,1200]){
-  await page.setViewportSize({width,height:720});await page.locator('[data-tab="YU"]').click();
+  await page.setViewportSize({width,height:720});await page.locator('[data-workspace="Library"]').click();await page.locator('[data-tab="YU"]').click();
   await page.locator('.yu-customize').first().click();
-  assert.equal(await page.locator('#yu-browser').isVisible(),width>=920);
+  assert.equal(await page.locator('#yu-browser').isVisible(),width>=760);
   assert(await page.locator('#yu-editor').isVisible());
-  if(width>=920){const a=await page.locator('#yu-browser').boundingBox(),b=await page.locator('#yu-editor').boundingBox();assert(b.x>=a.x+a.width,'Animation split overlaps');
+  if(width>=760){const a=await page.locator('#yu-browser').boundingBox(),b=await page.locator('#yu-editor').boundingBox();assert(b.x>=a.x+a.width,'Animation split overlaps');
    await page.locator('#cards .customize').first().click();assert(await page.locator('#yu-editor').isHidden());assert(await page.locator('#inspector').isVisible());
    await page.locator('.yu-customize').first().click();assert(await page.locator('#inspector').isHidden());
   }
   const actions=await page.locator('.yu-actions').boundingBox(),footer=await page.locator('footer').boundingBox();assert(actions.y+actions.height<=footer.y+1);
   await page.locator('#yu-back').click();assert(await page.locator('#yu-browser').isVisible());
   await page.locator('#text-animate-group>summary').click();assert(await page.locator('#yu-cards').isHidden());await page.locator('#text-animate-group>summary').click();
-  await page.locator('[data-tab="Background"]').click();
+  await page.locator('[data-workspace="Library"]').click();await page.locator('[data-tab="Background"]').click();
   assert(await page.locator('.card-actions button').evaluateAll(a=>a.every(b=>b.scrollWidth<=b.clientWidth)),'Card button clipped '+width);
   await page.locator('.customize').first().click();
-  assert.equal(await page.locator('main').isVisible(),width>=920);
+  assert.equal(await page.locator('main').isVisible(),width>=760);
   assert(await page.locator('#inspector').isVisible());
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Overflow '+width);
   await page.screenshot({path:'/tmp/zxt-studio-'+width+'.png'});
