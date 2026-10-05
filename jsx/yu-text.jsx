@@ -468,7 +468,10 @@ function protectPhase(layer, metadata, mode) {
   var groups = [layer.property("ADBE Text Properties").property("ADBE Text Animators"), layer.property("ADBE Effect Parade")], i, j, g, parts, phase, entry, expected, oldOptions, key;
   function custom(prop, allowed) {
     if (prop.numKeys) return true;
-    if (prop.canSetExpression && prop.expression && prop.expression !== allowed) return true;
+    // AE may persist generated expressions with Windows CRLF or legacy CR line endings.
+    // Normalize only line separators: authored code and keyframes remain protected.
+    if (prop.canSetExpression && prop.expression &&
+      String(prop.expression).replace(/\r\n?/g, "\n") !== String(allowed).replace(/\r\n?/g, "\n")) return true;
     for (var n = 1; n <= (prop.numProperties || 0); n++) if (custom(prop.property(n), allowed)) return true;
     return false;
   }
