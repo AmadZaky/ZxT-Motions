@@ -9,7 +9,7 @@ try {
  Copy-Item (Join-Path $universalSourceRoot 'install-windows.ps1') (Join-Path $installer 'Backend.ps1')
  Set-Content (Join-Path $installer 'SetupMode.txt') 'universal' -Encoding ASCII
  $zip=Join-Path $temp 'package.zip';python (Join-Path $universalSourceRoot 'tools\package-release.py') --output $zip;if ($LASTEXITCODE -ne 0) { throw 'Package fixture failed' }
- $version=(Get-Content (Join-Path $universalSourceRoot 'VERSION') -Raw).Trim();$tag='v'+$version;$name='ZxT-Motions_v'+$version+'.zip'
+ $universalExpectedVersion=(Get-Content (Join-Path $universalSourceRoot 'VERSION') -Raw).Trim();$tag='v'+$universalExpectedVersion;$name='ZxT-Motions_v'+$universalExpectedVersion+'.zip'
  $asset=@{name=$name;state='uploaded';size=(Get-Item $zip).Length;digest=('sha256:'+(Get-FileHash $zip -Algorithm SHA256).Hash.ToLower());browser_download_url=('https://github.com/AmadZaky/ZxT-Motions/releases/download/'+$tag+'/'+$name)}
  $latest=@{tag_name=$tag;draft=$false;prerelease=$false;body="# Release`nPublished: 2026-10-05`n- Counter Text`n- Text Animate`n- SolidGen";assets=@($asset)}
  $alpha=@{tag_name='v3.6.1-alpha';draft=$false;prerelease=$true;body='- Experimental Text Animate';assets=@(@{name='ZxT-Motions_v3.6.1-alpha.zip';state='uploaded';size=$asset.size;digest=$asset.digest;browser_download_url='https://github.com/AmadZaky/ZxT-Motions/releases/download/v3.6.1-alpha/ZxT-Motions_v3.6.1-alpha.zip'})}
@@ -62,7 +62,7 @@ function Invoke-WebRequest { param([switch]$UseBasicParsing,$Uri,$OutFile,$Timeo
     if (-not $script:completed) { throw ('Universal install failed: '+$script:controls.Details.Text) }
     if (-not (Test-Path $fixture.DownloadLog)) { throw 'Selected package was never downloaded' }
     if ((Get-Content $fixture.DownloadLog -Raw).Trim() -cne $asset.browser_download_url) { throw 'Wrong version downloaded' }
-    if ((Get-Content (Join-Path $env:APPDATA 'Adobe\CEP\extensions\MotionAstra-FX\VERSION') -Raw).Trim() -ne $version) { throw 'Wrong payload installed' }
+    if ((Get-Content (Join-Path $env:APPDATA 'Adobe\CEP\extensions\MotionAstra-FX\VERSION') -Raw).Trim() -ne $universalExpectedVersion) { throw 'Wrong payload installed' }
     $script:testPhase=3;$script:driver.Stop()
     $script:controls.Install.RaiseEvent((New-Object Windows.RoutedEventArgs([Windows.Controls.Button]::ClickEvent)))
    }
