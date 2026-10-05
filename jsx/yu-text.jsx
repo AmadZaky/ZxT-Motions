@@ -464,15 +464,29 @@ function clear(layer) {
   layer.comment = String(layer.comment || "").replace(recordPattern, "");
 }
 // Replacing a phase must not silently discard animation authored in AE.
-function protectPhase(layer, metadata, mode) {
+function knownChannel(p, channel) {
+  var list = YTMCore.channels(p), i;
+  for (i = 0; i < list.length; i++) if (list[i] === channel) return true;
+  return false;
+}
+function sameExpression(a, b) {
+  return String(a).replace(/\r\n?/g, "\n") === String(b).replace(/\r\n?/g, "\n");
+}
+function generatedPhaseExpression(entry, phase, channel) {
+  var opt = {}, key;
+  for (key in entry.options) if (entry.options.hasOwnProperty(key)) opt[key] = entry.options[key];
+  opt.prefix = "YTM "; currentOptions = opt;
+  try { return YTMCore.expression(YTMCore.presets[entry.id - 1], channel, phase, opt); }
+  finally { currentOptions = null; }
+}
+function protectPhase(layer, metadata, mode, copySelectors) {
   var groups = [layer.property("ADBE Text Properties").property("ADBE Text Animators"), layer.property("ADBE Effect Parade")], i, j, g, parts, phase, entry, expected, oldOptions, key;
-  function custom(prop, allowed) {
+  function custom(prop, allowed, copiedAmount) {
     if (prop.numKeys) return true;
     // AE may persist generated expressions with Windows CRLF or legacy CR line endings.
     // Normalize only line separators: authored code and keyframes remain protected.
-    if (prop.canSetExpression && prop.expression &&
-      String(prop.expression).replace(/\r\n?/g, "\n") !== String(allowed).replace(/\r\n?/g, "\n")) return true;
-    for (var n = 1; n <= (prop.numProperties || 0); n++) if (custom(prop.property(n), allowed)) return true;
+    if (prop !== copiedAmount && prop.canSetExpression && prop.expression && !sameExpression(prop.expression, allowed)) return true;
+    for (var n = 1; n <= (prop.numProperties || 0); n++) if (custom(prop.property(n), allowed, copiedAmount)) return true;
     return false;
   }
   for (i = 0; i < groups.length; i++) for (j = 1; j <= groups[i].numProperties; j++) {
@@ -486,7 +500,14 @@ function protectPhase(layer, metadata, mode) {
       try { expected = YTMCore.expression(YTMCore.presets[entry.id - 1], parts[2], phase, oldOptions); }
       finally { currentOptions = null; }
     }
-    if (custom(g, expected)) throw Error("This " + phase + " animation has custom keyframes or expressions. Edit it in AE, or explicitly remove the animation before replacing it.");
+    var copiedAmount = null;
+    // Copy may transport only this preset's known selector Amount, never other expressions.
+    if (copySelectors && i === 0 && entry && parts.length === 3 &&
+      YTMCore.presets[entry.id - 1] && parts[1] === YTMCore.presets[entry.id - 1].name &&
+      knownChannel(YTMCore.presets[entry.id - 1], parts[2])) {
+      copiedAmount = g.property("ADBE Text Selectors").property(1).property("ADBE Text Expressible Amount");
+    }
+    if (custom(g, expected, copiedAmount)) throw Error("This " + phase + " animation has custom keyframes or expressions. Edit it in AE, or explicitly remove the animation before replacing it.");
   }
 }
 function run(a, codec) {
@@ -606,7 +627,21 @@ function run(a, codec) {
     message: message
   };
 }
-// Copy only known phase settings. protectPhase rejects customized selector code.
+// Session clipboard carries known phase settings plus explicitly authorized selector overrides.
+function copyPhaseExpressions(layer, entry, phase) {
+  var p = YTMCore.presets[entry.id - 1], channels = YTMCore.channels(p), i, g, amount, result = [];
+  var group = layer.property("ADBE Text Properties").property("ADBE Text Animators");
+  for (i = 0; i < channels.length; i++) {
+    g = group.property("YTM " + phase + " | " + p.name + " | " + channels[i]);
+    if (!g) throw Error("Missing Text Animate selector: " + channels[i]);
+    amount = g.property("ADBE Text Selectors").property(1).property("ADBE Text Expressible Amount");
+    if (!sameExpression(amount.expression, generatedPhaseExpression(entry, phase, channels[i])) ||
+      amount.expressionEnabled === false) {
+      result.push({channel: channels[i], expression: String(amount.expression || ""), enabled: !!amount.expressionEnabled});
+    }
+  }
+  return result;
+}
 function copyMotion(layer, codec) {
   var m = read(layer, codec), result = [], i, phase, entry, opt, doc, text, n, span, budget, start;
   if (!m) return result;
@@ -615,7 +650,7 @@ function copyMotion(layer, codec) {
   for (i = 0; i < 2; i++) {
     phase = i ? "OUT" : "IN"; entry = m[phase]; if (!entry) continue;
     if (!YTMCore.presets[entry.id - 1]) throw Error("Unknown Text Animate preset.");
-    protectPhase(layer, m, phase); opt = codec.parse(codec.encode(entry.options)); options(opt);
+    protectPhase(layer, m, phase, true); opt = codec.parse(codec.encode(entry.options)); options(opt);
     n = opt.group === "all" ? 1 : opt.group === "words" ? (text.match(/\S+/g) || []).length :
       opt.group === "lines" ? (doc.composedLineCount || text.split(/\r\n|\r|\n/).length) :
       opt.group === "charsNoSpaces" ? text.replace(/\s/g, "").length : text.length;
@@ -623,29 +658,50 @@ function copyMotion(layer, codec) {
     budget = Math.max(layer.containingComp.frameDuration, layer.outPoint - layer.containingComp.frameDuration - layer.inPoint) * (opt.mode === "BOTH" ? .45 : 1);
     span = Math.min(span, budget);
     start = opt.placement === "playhead" && opt.mode !== "BOTH" ? opt.playhead : phase === "IN" ? layer.inPoint : layer.outPoint - layer.containingComp.frameDuration - span;
-    result.push({id: entry.id, phase: phase, options: opt, time: start});
+    result.push({id: entry.id, phase: phase, options: opt, time: start, expressions: copyPhaseExpressions(layer, entry, phase)});
   }
   return result;
 }
 function validateMotion(entries) {
-  var used = {}, i, e;
+  var used = {}, i, e, j, overrides, channels, override;
   for (i = 0; i < entries.length; i++) {
     e = entries[i];
     if (!e || typeof e.id !== "number" || e.id !== Math.floor(e.id) || !YTMCore.presets[e.id - 1] ||
       (e.phase !== "IN" && e.phase !== "OUT") || used[e.phase] || typeof e.time !== "number" || !isFinite(e.time) || e.time < 0)
       throw Error("Invalid copied Text Animate motion.");
     options(e.options); used[e.phase] = true;
+    if (e.expressions !== undefined) {
+      if (!(e.expressions instanceof Array) || e.expressions.length > YTMCore.channels(YTMCore.presets[e.id - 1]).length)
+        throw Error("Invalid copied selector expressions.");
+      channels = {};
+      for (j = 0; j < e.expressions.length; j++) {
+        override = e.expressions[j];
+        if (!override || !knownChannel(YTMCore.presets[e.id - 1], override.channel) ||
+          channels[override.channel] || typeof override.expression !== "string" ||
+          override.expression.length > 1000000 || typeof override.enabled !== "boolean")
+          throw Error("Invalid copied selector expression.");
+        channels[override.channel] = true;
+      }
+    }
   }
 }
 function pasteMotion(layer, entries, start, codec) {
   validateMotion(entries);
-  var i, e, opt, m = {token: "yu_" + new Date().getTime() + "_paste"};
+  var i, j, e, opt, override, amount, animator, m = {token: "yu_" + new Date().getTime() + "_paste"};
   try {
     for (i = 0; i < entries.length; i++) {
       e = entries[i]; opt = options(e.options); opt.mode = e.phase; opt.placement = "playhead"; opt.playhead = start + e.time;
       currentOptions = opt;
       try { YTMHost.apply(layer, YTMCore.presets[e.id - 1], opt); }
       finally { currentOptions = null; }
+      for (j = 0; j < (e.expressions || []).length; j++) {
+        override = e.expressions[j];
+        animator = layer.property("ADBE Text Properties").property("ADBE Text Animators")
+          .property("YTM " + e.phase + " | " + YTMCore.presets[e.id - 1].name + " | " + override.channel);
+        amount = animator.property("ADBE Text Selectors").property(1).property("ADBE Text Expressible Amount");
+        amount.expression = override.expression;
+        amount.expressionEnabled = override.enabled;
+      }
       m[e.phase] = {id: e.id, options: opt};
     }
     write(layer, m, codec);
