@@ -24,6 +24,7 @@ function Invoke-WebRequest { param([switch]$UseBasicParsing,$Uri,$OutFile,$Timeo
  Set-Content (Join-Path $installer 'Download.ps1') $download -Encoding UTF8
  $env:APPDATA=Join-Path $temp 'AppData'
  . (Join-Path $installer 'WindowsUI.ps1')
+ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase
  Set-Content $fixture.Offline 'offline'
  $script:deadline=[DateTime]::UtcNow.AddSeconds(90)
  $script:driver=New-Object Windows.Threading.DispatcherTimer;$script:driver.Interval=[TimeSpan]::FromMilliseconds(150)

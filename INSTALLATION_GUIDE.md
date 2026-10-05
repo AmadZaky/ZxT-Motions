@@ -7,8 +7,8 @@ This build targets After Effects 2025 on Windows. macOS is not supported, no Mac
 
 1. Download **Install ZxT-Motions.exe** from the release assets at https://github.com/AmadZaky/ZxT-Motions/releases. This single file contains the setup UI; no ZIP extraction is needed.
 2. Close After Effects and open the EXE. Review the installation destination.
-3. Check the download/install consent box and choose **Install** or **Update**. No network request starts before this consent.
-4. Keep an internet connection while setup downloads its matching version from GitHub. It checks the archive's SHA-256 against GitHub release metadata, then verifies package files before changing any installed copy.
+3. Check the download/install consent box and choose **Install** or **Update**. Only public release metadata loads before consent; plugin-package downloads start after consent.
+4. Keep an internet connection while setup downloads your selected version from GitHub. It checks the archive's SHA-256 against GitHub release metadata, then verifies package files before changing any installed copy.
 5. If old copies are detected, review their paths and confirm replacement. Backups and rollback remain enabled.
 6. Select **Done**, restart AE and open **Window → Extensions → ZxT-Motions**. Settings should show **1.0.0**.
 
