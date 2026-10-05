@@ -17,7 +17,7 @@ try {
  $fixture | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $installer 'fixture.json') -Encoding UTF8
  $mock=@'
 $script:fixture=Get-Content (Join-Path $PSScriptRoot 'fixture.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-function Invoke-RestMethod { param($Uri,$Headers,$TimeoutSec);if (Test-Path $script:fixture.Offline) { throw 'Simulated offline'; };Start-Sleep -Milliseconds 200;if ($Uri -match '/latest$|/tags/') { return $script:fixture.Latest };return $script:fixture.Rows }
+function Invoke-RestMethod { param($Uri,$Headers,$TimeoutSec);if (Test-Path $script:fixture.Offline) { throw 'Simulated offline'; };Start-Sleep -Milliseconds 200;if ($Uri -match '/latest$|/tags/') { return $script:fixture.Latest };return ,$script:fixture.Rows }
 function Invoke-WebRequest { param([switch]$UseBasicParsing,$Uri,$OutFile,$TimeoutSec);Set-Content $script:fixture.DownloadLog $Uri;Copy-Item $script:fixture.Zip $OutFile }
 '@
  $download=(Get-Content (Join-Path $universalSourceRoot 'installer\windows\Download.ps1') -Raw)+"`n"+$mock
