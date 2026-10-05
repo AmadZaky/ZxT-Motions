@@ -44,6 +44,7 @@ jobs:
         run: |
           ./tests/online-installer-windows.ps1
           ./tests/universal-installer-windows.ps1
+          ./tests/live-catalog-windows.ps1
           powershell.exe -NoProfile -STA -File ./tests/universal-window-windows.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload Windows installer
