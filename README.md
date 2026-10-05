@@ -11,7 +11,6 @@ Download only **Install ZxT-Motions.exe** from the release assets. Close AE, ope
 
 ## Control & reliability (v3.6)
 
-- **Layer Inspector:** expand the selection summary in Quick to see layer names/types, locks, detected core FX, IN/OUT Text Animate phases and native effect names. Load the matching settings from there. Selection is polled every four seconds and on focus; Refresh selection requests it immediately. Host validation always checks the real selection at execution time.
 - **Target-aware actions:** text FX require unlocked text layers; SolidGen only needs an open composition. Update on a loaded instance is disabled after selection changes. Load the new target to continue. Mixed selections apply to valid text layers and report skipped layers.
 - **Animation controls:** parameter badges distinguish **AE keyframes** (Progress and Choice). Enable Manual Progress before animating the native Progress slider. Text Switcher needs Choice slider mode before animating `MA2 choice`. Explicit panel edits to keyed controls add/update a key at the playhead; unrelated updates leave their keys alone. A custom expression must be edited in AE first.
 - **Colors and artwork:** unchanged native colors retain keys/expressions. An explicit color edit adds a key at the playhead if already keyed. Version upgrades refresh owned expressions without rebuilding background artwork. Count changes are blocked when rebuilding would erase custom artwork animation. Generate another background to use a different count.
@@ -32,25 +31,13 @@ Loop mode is a dropdown: Ping-Pong, Cycle (default), Continue, None (play once a
 
 Apply/Generate and Update are compact adjacent buttons at the inspector bottom. Load settings in the Tools Bar follows the active Text Tools or Text Animate tab. Text Apply / Update refreshes the same preset already on a layer instead of stacking another instance. After loading Text Animate settings, use Save changes; Remove restores Apply. Unwanted old duplicate layers are not deleted automatically.
 
+Copy / Paste Motion and the Layer Inspector have been removed from Quick Tools. Selection validation and the preset Inspector remain active. Create has independent collapsible Text, Shape and Solid Color settings; each Create button stays visible when its settings are closed. Opening or closing settings preserves the current form values.
+
 ## Quick Tools and FX settings
 
 New FX use one **MotionAstra Progress** parameter controller. Native effects needed to render the artwork remain in Effect Controls. Use **Quick Tools → FX settings → Load selected FX**, search or expand parameter groups, then **Update selected FX**. Updates are bound to the loaded layer; reload if you change selection. Enable Manual Progress to animate the single progress slider.
 
 Existing instances keep their controls. **Compact old controls** converts an unanimated instance; it refuses animated controls and external expression dependencies to protect existing projects. Settings → control layout → Individual keeps separate controls for advanced keyframing.
-
-## Copy / Paste Motion — presets and Transform
-
-In **Motion → Quick Tools → Copy / Paste Motion**, select exactly one source layer and click **Copy Motion**. Copy captures known ZxT preset settings and Text Animate/YUGraphic IN/OUT settings, plus any supported Anchor Point, Position, Scale, Rotation/Z Rotation and Opacity keyframes. Managed control keyframes (including Choice, Progress and native color controllers) are included. Preset setups are regenerated through the existing engines. Custom expressions on known Text Animate/YUGraphic selector Amount properties are included verbatim, with their enabled/disabled state. Built-in selector expressions still regenerate at the CTI. Custom code keeps its original time logic and layer/effect name references; references must exist in the target composition. Arbitrary user effects, masks, other text animators, other expressions, artwork and parenting are not copied. Existing target presets and authored selector keyframes remain protected. Copy is read-only and creates no undo step.
-
-Select one or more targets, put the playhead at the desired start, and click **Paste Motion**. The earliest copied preset phase/start marker or keyframe becomes offset zero; all keys use `CTI + offset` in seconds. Compatible targets receive the same timing without staggering. Separated Position axes require matching separated target Position; dimensions and spatial types must match. There is no conversion between 2D/3D or separated/unified Position.
-
-**Preset conflict policy:** a target with an existing managed preset/control/animator is skipped. Core presets also refuse existing Transform/Source Text animation and incompatible layer types. Background setups paste onto compatible selected solids without generating extra layers. Copied Text Animate phases must fit within the target layer. Layer timing stays unchanged.
-
-**Transform conflict policy:** any destination property already containing keyframes is skipped, even outside the pasted range. Properties with an expression, including disabled expressions, are also skipped. Other empty, compatible properties can still be pasted. This protects old roving timing and automatic tangents as well as time collisions. A failed property paste removes only its new keys and restores its old static value; failed rollback asks you to check the timeline and Undo once.
-
-Paste uses one **Paste ZxT Motion** undo group. Interpolation, ease, spatial tangents and supported continuity/auto-Bezier flags are transferred. Interior spatial roving is retained only if AE keeps the requested relative timing; otherwise that property is restored. Clipboard data is local to the open panel session and disappears on reload. Failed recopy clears the previous buffer. Existing Favorites/Recent lists are not used as a clipboard.
-
-See `docs/OFFICIAL_V1_REPAIR_VALIDATION.md` and `docs/TRANSFORM_MOTION_VALIDATION.md` for coverage and required native AE checks.
 
 ## Text Animate · by YUGraphic
 

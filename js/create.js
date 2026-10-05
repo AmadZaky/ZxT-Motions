@@ -282,6 +282,10 @@ window.MotionAstraCreate = (() => {
       ["create-background", "newSolid"],
     ].forEach(([id, kind]) => {
       $(id).onsubmit = (e) => submit(e, kind);
+      // Expose invalid native controls before the browser tries to focus them.
+      $(id).addEventListener("invalid", () => {
+        $(id).querySelector(".create-section").open = true;
+      }, true);
     });
   }
   return { init, activate, setBusy, refreshCollection };

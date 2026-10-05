@@ -19,6 +19,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),{create}=re
  await page.goto(require('node:url').pathToFileURL(path.resolve(__dirname,'../index.html')).href);
  assert.equal(await page.locator('#quick [data-create]').count(),0);
  await page.locator('[data-tab="Create"]').click();
+ for(const id of ['create-text','create-shape','create-background'])await page.locator('#'+id+' summary').click();
  await page.waitForFunction(()=>document.querySelector('#new-text-font').options.length===3);
  assert.equal(calls.filter(p=>p.action==='fonts').length,1);
  await page.locator('#font-source').selectOption('user');
@@ -69,7 +70,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),{create}=re
  await page.locator('#new-background-color').fill('#123456');assert.equal(await page.locator('#background-hex').inputValue(),'#123456');
  failBackground=true;await page.locator('[data-create="newSolid"]').click();await page.waitForFunction(()=>!document.querySelector('[data-create="newSolid"]').disabled);assert.equal(await page.locator('#recent-colors button').count(),1);failBackground=false;
  await page.reload();await page.locator('[data-tab="Create"]').click();await page.waitForFunction(()=>!document.querySelector('#refresh-fonts').disabled);
- await page.locator('#recent-colors button').click();assert.equal(await page.locator('#background-hex').inputValue(),'#AABBCC');assert.equal(await page.locator('#new-background-color').inputValue(),'#aabbcc');
+ await page.locator('#create-background summary').click();await page.locator('#recent-colors button').click();assert.equal(await page.locator('#background-hex').inputValue(),'#AABBCC');assert.equal(await page.locator('#new-background-color').inputValue(),'#aabbcc');
  for(const width of [300,380,1200]){await page.setViewportSize({width,height:650});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
  await page.locator('main').evaluate(e=>e.scrollTop=0);
  await page.screenshot({path:'/tmp/motionastra-create.png',fullPage:true});

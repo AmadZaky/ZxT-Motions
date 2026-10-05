@@ -69,7 +69,6 @@
         ><button id="load-fx" data-host>
           <i data-lucide="sliders-horizontal"></i>Load settings</button>
       </div>
-      <details id="selected-layer-inspector"><summary id="selection-summary">Layer Inspector</summary><div id="selection-content"></div><button id="selection-refresh" data-host>Refresh selection</button></details>
     </div>
     <div id="workspace">
       <aside id="inspector-empty" aria-label="Inspector"><span class="eyebrow">INSPECTOR</span><h2>Make it move.</h2><p>Select a preset to preview and configure it. Select a layer in After Effects, then Apply.</p><p>Already applied? Use Load settings to update that instance here.</p></aside>
@@ -82,7 +81,9 @@
           <p id="create-empty" class="empty" hidden></p>
           <div class="create-grid">
             <form id="create-text" class="create-card">
-              <h2><i data-lucide="type"></i> Text</h2>
+              <details class="create-section">
+                <summary><h2><i data-lucide="type"></i> Text</h2></summary>
+                <div class="create-options">
               <label
                 >Content<textarea
                   id="new-text-content"
@@ -146,6 +147,8 @@ ZxT-Motions</textarea
                   Refresh fonts
                 </button>
               </div>
+                </div>
+              </details>
               <button
                 type="submit"
                 class="primary"
@@ -156,7 +159,9 @@ ZxT-Motions</textarea
               </button>
             </form>
             <form id="create-shape" class="create-card">
-              <h2><i data-lucide="shapes"></i> Shape</h2>
+              <details class="create-section">
+                <summary><h2><i data-lucide="shapes"></i> Shape</h2></summary>
+                <div class="create-options">
               <label
                 >Shape<select id="new-shape-type">
                   <option value="circle">Circle</option>
@@ -191,6 +196,8 @@ ZxT-Motions</textarea
                   type="color"
                   value="#ff943f"
               /></label>
+                </div>
+              </details>
               <button
                 type="submit"
                 class="primary"
@@ -201,7 +208,9 @@ ZxT-Motions</textarea
               </button>
             </form>
             <form id="create-background" class="create-card">
-              <h2><i data-lucide="layers"></i> Solid Color</h2>
+              <details class="create-section">
+                <summary><h2><i data-lucide="layers"></i> Solid Color</h2></summary>
+                <div class="create-options">
               <p class="hint">
                 One full-size solid, placed at the bottom for the whole
                 composition.
@@ -233,13 +242,15 @@ ZxT-Motions</textarea
                 class="color-swatches"
                 aria-label="Recent background colors"
               ></div>
+                </div>
+              </details>
               <button
                 type="submit"
                 class="primary"
                 data-create="newSolid"
                 data-host
               >
-                Create background
+                Create solid
               </button>
             </form>
           </div>
@@ -466,17 +477,8 @@ ZxT-Motions</textarea
           <div class="eyebrow">EVERYDAY CONTROLS</div>
           <h1>Quick Tools</h1>
           <p>
-            Tools operate on selected layers. Edits use one Undo step; Copy Motion only reads keyframes.
+            Tools operate on selected layers. Edits use one Undo step.
           </p>
-          <details id="transform-motion" open>
-            <summary><i data-lucide="copy"></i>Copy / Paste Motion</summary>
-            <div class="button-grid">
-              <button id="copy-motion" type="button" data-host>Copy Motion</button>
-              <button id="paste-motion" type="button" data-host disabled>Paste Motion</button>
-            </div>
-            <p id="motion-clipboard" class="hint" role="status">Copy preset motion or Transform keyframes from one layer. Paste starts at the playhead.</p>
-            <p class="hint">Transform only. Existing target keyframes and expressions are protected; those properties are skipped.</p>
-          </details>
           <details id="tweaker" open>
             <summary>FX settings</summary>
             <p>

@@ -16,9 +16,9 @@ const assert=require('node:assert/strict'),path=require('node:path'),{create}=re
  await page.locator('#param-end').fill('825');await page.locator('#close').click();
  await page.locator('.customize').first().click();assert.equal(await page.locator('#param-end').inputValue(),'825','Loaded draft survives Back');await page.locator('#close').click();
  text.selected=false;const other=env.comp.add('text');other.name='Other';other.selected=true;
- await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>document.querySelector('#selection-summary').textContent.includes('Other'));
+ await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>window.ZxTSelection.context()?.layers[0]?.name==='Other');
  await page.locator('.customize').first().click();assert.notEqual(await page.locator('#param-end').inputValue(),'825','No draft transfer to another layer');await page.locator('#close').click();
- other.selected=false;text.selected=true;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>document.querySelector('#selection-summary').textContent.includes('Title'));
+ other.selected=false;text.selected=true;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>window.ZxTSelection.context()?.layers[0]?.name==='Title');
  await page.locator('.customize').first().click();assert.equal(await page.locator('#param-end').inputValue(),'825');await page.locator('#close').click();
  for(const width of [300,380,759,760,920,1200]) {
   await page.setViewportSize({width,height:720});
@@ -40,7 +40,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),{create}=re
  await page.locator('[data-workspace="Motion"]').click();assert(await page.locator('#tools').isVisible());await page.locator('[data-tab="Curve"]').click();assert(await page.locator('#motion-curve').isVisible());
  await page.locator('[data-workspace="Create"]').click();assert(await page.locator('#create').isVisible());
  await page.locator('[data-workspace="Library"]').click();assert.equal(await page.evaluate(()=>document.querySelector('main').scrollTop),previousScroll,'Workspace switch restores library scroll');
- text.selected=false;other.selected=true;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>document.querySelector('#selection-summary').textContent.includes('Other'));
+ text.selected=false;other.selected=true;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>window.ZxTSelection.context()?.layers[0]?.name==='Other');
  await page.locator('.customize').first().click();timeoutNext=true;await page.locator('#apply').click();await page.waitForFunction(()=>!document.querySelector('#recovery').hidden);assert(await page.locator('#apply').isDisabled());
  await page.locator('#recovery-continue').click();await page.waitForFunction(()=>document.querySelector('#recovery').hidden);assert.equal(other.fx.numProperties,0,'Uncertain reply is never automatically retried');
  assert.deepEqual(errors,[]);console.log('PASS: Studio navigation, Apply/Update binding, responsive editors and reachable actions');
