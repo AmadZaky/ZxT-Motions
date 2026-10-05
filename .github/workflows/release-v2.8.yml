@@ -1,7 +1,7 @@
 name: Publish ZxT-Motions Official Release
 on:
   push:
-    branches: [main]
+    branches: [main, 'installer/universal-v1']
   workflow_dispatch:
 concurrency:
   group: motionastra-release
@@ -41,7 +41,11 @@ jobs:
           powershell.exe -NoProfile -STA -File ./tests/installer-window-windows.ps1
       - name: Verify online setup
         shell: powershell
-        run: ./tests/online-installer-windows.ps1
+        run: |
+          ./tests/online-installer-windows.ps1
+          ./tests/universal-installer-windows.ps1
+          powershell.exe -NoProfile -STA -File ./tests/universal-window-windows.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
@@ -49,8 +53,10 @@ jobs:
           path: |
             dist/Install ZxT-Motions.exe
             dist/installer-preview.png
+            dist/installer-universal-preview.png
           if-no-files-found: error
   release:
+    if: github.ref == 'refs/heads/main'
     needs: installer-tests
     runs-on: windows-latest
     steps:
@@ -71,6 +77,7 @@ jobs:
           node tests/es3.cjs
           python tests/package.py
           python tests/official-release.py
+          python tests/universal-installer.py
           python tests/official-repair.py
       - name: Verify host tests
         run: |

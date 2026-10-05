@@ -222,7 +222,7 @@ Fixes Fill Color match-name addressing, shifts Glow threshold/radius/intensity t
 
 ## Windows graphical setup (3.0.3)
 
-Extract the release ZIP, close After Effects, and open **Install ZxT-Motions.exe**. The black/orange MotionAstra window shows your per-user CEP destination, Install/Update, progress and completion instructions. Existing copies require confirmation and are backed up. Cancel is available before installation or when declining an update; closing is blocked during the file transaction.
+Extract the release ZIP, close After Effects, and open **Install ZxT-Motions.exe**. The black/orange MotionAstra window shows your per-user CEP destination, Install/Update, progress and completion instructions. Choose a release in the universal installer; the latest Official is selected by default. Version information shows the version and included features only. Older/experimental versions require a separate warning acknowledgment before download. Existing copies require confirmation and are backed up. Cancel is available before installation or when declining an update; closing is blocked during the file transaction.
 
 Keep the `Installer` support folder and `MotionAstra-FX` together with the executable. Windows PowerShell 5.1 and WPF are used locally; no downloads or administrator elevation are requested. The optional CMD launcher remains available for troubleshooting. The executable is unsigned; branding does not provide a code-signing certificate or remove Windows reputation warnings.
 

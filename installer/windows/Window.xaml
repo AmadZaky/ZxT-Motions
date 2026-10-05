@@ -16,6 +16,26 @@
     </ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>
   </Style>
+  <Style TargetType="ComboBoxItem">
+   <Setter Property="Foreground" Value="#F4F4F5"/><Setter Property="Background" Value="#1C1C21"/><Setter Property="Padding" Value="12,9"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem"><Border x:Name="ItemSurface" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers>
+    <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="ItemSurface" Property="Background" Value="#3A2A20"/></Trigger>
+    <Trigger Property="IsSelected" Value="True"><Setter TargetName="ItemSurface" Property="Background" Value="#3A2A20"/></Trigger>
+    <Trigger Property="IsEnabled" Value="False"><Setter TargetName="ItemSurface" Property="Opacity" Value="0.4"/></Trigger>
+   </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style TargetType="ComboBox">
+   <Setter Property="Foreground" Value="#F4F4F5"/><Setter Property="Background" Value="#26262C"/><Setter Property="BorderBrush" Value="#3D3D45"/><Setter Property="MaxDropDownHeight" Value="240"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid>
+    <ToggleButton Focusable="False" ClickMode="Press" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+     <ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border Background="#26262C" BorderBrush="#3D3D45" BorderThickness="1" CornerRadius="8" Padding="12,10"><Grid><Path Data="M 0,0 L 4,4 L 8,0" Stroke="#FF943F" StrokeThickness="2" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid></Border></ControlTemplate></ToggleButton.Template>
+    </ToggleButton>
+    <ContentPresenter IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Margin="12,9,30,9" VerticalAlignment="Center"/>
+    <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+     <Border Background="#1C1C21" BorderBrush="#3D3D45" BorderThickness="1" CornerRadius="8" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="240"><ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Auto"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer></Border>
+    </Popup>
+   </Grid><ControlTemplate.Triggers><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  </Style>
  </Window.Resources>
  <Grid Margin="32">
   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -31,6 +51,17 @@
   </StackPanel>
   <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,0,20">
    <StackPanel>
+    <StackPanel x:Name="VersionSection" Visibility="Collapsed" Margin="0,0,0,18">
+     <TextBlock Text="CHOOSE VERSION" Foreground="#A1A1AA" FontSize="11" Margin="0,0,0,8"/>
+     <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <ComboBox x:Name="VersionPicker" IsEnabled="False" AutomationProperties.Name="Choose plugin version"/>
+      <Button x:Name="RefreshVersions" Grid.Column="1" Content="Refresh" Padding="12,9" AutomationProperties.Name="Refresh available versions"/>
+     </Grid>
+     <TextBlock Text="FEATURES INCLUDED" Foreground="#A1A1AA" FontSize="11" Margin="0,14,0,6"/>
+     <ScrollViewer MaxHeight="135" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><TextBlock x:Name="VersionFeatures" Text="Select a version to see its features." TextWrapping="Wrap" Foreground="#BDBDC6" FontSize="12"/></ScrollViewer>
+     <TextBlock x:Name="VersionWarning" Visibility="Collapsed" Foreground="#FFB573" TextWrapping="Wrap" Margin="0,12,0,8" FontSize="12"/>
+     <CheckBox x:Name="VersionConsent" Visibility="Collapsed" IsChecked="False" Foreground="#BDBDC6"><TextBlock Text="I understand this version's limitations and want to install it." TextWrapping="Wrap" MaxWidth="430"/></CheckBox>
+    </StackPanel>
     <Border Background="#1C1C21" BorderBrush="#303038" BorderThickness="1" CornerRadius="12" Padding="18">
      <StackPanel>
       <TextBlock Text="INSTALL LOCATION" Foreground="#A1A1AA" FontSize="11" Margin="0,0,0,8"/>
@@ -43,7 +74,7 @@
      <TextBlock Text="I agree to download ZxT-Motions from GitHub and install it for use in After Effects. Internet is required for setup; the panel works offline." TextWrapping="Wrap" MaxWidth="440"/>
     </CheckBox>
     <CheckBox x:Name="DebugConsent" IsChecked="True" Foreground="#BDBDC6" Margin="0,0,0,18">
-     <TextBlock Text="Enable unsigned CEP panels for my account (required for this Alpha)." TextWrapping="Wrap" MaxWidth="380"/>
+     <TextBlock Text="Enable unsigned CEP panels for my account (required for unsigned builds)." TextWrapping="Wrap" MaxWidth="380"/>
     </CheckBox>
     <TextBlock x:Name="Status" Text="Ready to install" FontWeight="SemiBold" Margin="0,0,0,10" TextWrapping="Wrap"/>
     <ProgressBar x:Name="Progress" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#FF943F" Background="#26262C" BorderThickness="0"/>

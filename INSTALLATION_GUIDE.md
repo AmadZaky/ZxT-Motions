@@ -72,3 +72,14 @@ Choose Library for presets, Motion for Quick Tools/Curve, or Create for new laye
 5. Test on a duplicate project first. These automated tests model AE behavior; they cannot verify real AE rendering or every installed font/plugin.
 
 For validation coverage and native AE checks, see `docs/STUDIO_UI_VALIDATION.md`.
+
+
+## Universal Windows installer
+
+Download **Install ZxT-Motions.exe**, close After Effects and open it. Setup fetches the public release list; no plugin package is downloaded until you consent and press Install/Update. The default is GitHub’s latest **Official** release, regardless of older Alpha builds having higher version numbers. New releases appear without downloading a new installer.
+
+Choose a version; its version label and included features are displayed. Other versions show a warning and require acknowledgment. Changing the selection resets that acknowledgment. Rerun setup and select Refresh if the list cannot load. Releases without a valid package are visible but unavailable.
+
+The selected package is downloaded only from this repository, checked against its published SHA256 and size, safely extracted, and checked for extension/version identity and internal integrity before old files are moved. Legacy MotionAstra archives are supported when their verified contents are compatible; missing VERSION/checksum metadata is generated only after archive integrity verification. An incompatible package fails before replacement. The installer keeps replacement confirmation, backups and rollback.
+
+Destination remains `%APPDATA%\Adobe\CEP\extensions\MotionAstra-FX`. The universal EXE requires internet, including when bundled in a ZIP; the ZIP’s PowerShell installer remains available for offline installation of that bundled version. Experimental/older versions may contain bugs, omit current fixes or behave differently with projects/settings. Selecting them does not establish compatibility with native AE 2025.
