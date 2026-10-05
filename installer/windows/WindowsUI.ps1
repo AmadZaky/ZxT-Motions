@@ -198,6 +198,8 @@ function Show-MotionAstraInstaller {
                 $script:controls.Details.Text=$s.Error
                 $script:controls.Install.Content='Try again'
             } elseif ($s.Success) {
+                $script:controls.Progress.IsIndeterminate=$false
+                $script:controls.Progress.Value=100
                 $script:completed=$true
                 $script:controls.Heading.Text='Ready. Set. Create.'
                 $script:controls.Install.Content='Done'
