@@ -12,11 +12,11 @@ try {
  if ($LASTEXITCODE -ne 0) { throw 'Fixture packaging failed' }
  $digest='sha256:'+(Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
  $size=(Get-Item $zip).Length
- $asset=@{name="ZxT-Motions_v$version.zip";browser_download_url="https://github.com/AmadZaky/ZxT-Motions/releases/download/v$version/ZxT-Motions_v$version.zip";digest=$digest;size=$size}
+ $asset=@{state='uploaded';name="ZxT-Motions_v$version.zip";browser_download_url="https://github.com/AmadZaky/ZxT-Motions/releases/download/v$version/ZxT-Motions_v$version.zip";digest=$digest;size=$size}
  $release=@{tag_name="v$version";draft=$false;prerelease=$false;assets=@($asset)}
- Assert ((Assert-MotionAstraReleaseAsset $release $version).digest -eq $digest) 'Correct metadata rejected'
- $release.prerelease=$true;Reject { Assert-MotionAstraReleaseAsset $release $version };$release.prerelease=$false
- $asset.browser_download_url='https://example.com/payload.zip';Reject { Assert-MotionAstraReleaseAsset $release $version }
+ Assert ((Get-MotionAstraReleasePackage $release ('v'+$version)).digest -eq $digest) 'Correct metadata rejected'
+ $release.prerelease=$true;Assert ([bool](Get-MotionAstraReleasePackage $release ('v'+$version))) 'Explicit prerelease selection rejected';$release.prerelease=$false
+ $asset.browser_download_url='https://example.com/payload.zip';Reject { Get-MotionAstraReleasePackage $release ('v'+$version) }
  $asset.browser_download_url="https://github.com/AmadZaky/ZxT-Motions/releases/download/v$version/ZxT-Motions_v$version.zip"
  Reject { Expand-MotionAstraDownload $zip (Join-Path $temp 'bad') ('sha256:'+('0'*64)) $size }
  $payload=Expand-MotionAstraDownload $zip (Join-Path $temp 'good') $digest $size
@@ -27,13 +27,13 @@ try {
  function Invoke-RestMethod { param($Uri,$Headers,$TimeoutSec);$script:calls++;return $script:fixtureRelease }
  function Invoke-WebRequest { param([switch]$UseBasicParsing,$Uri,$OutFile,$TimeoutSec);$script:calls++;Copy-Item $script:fixtureZip $OutFile }
  $network=Join-Path $temp 'network';New-Item -ItemType Directory $network | Out-Null
- $state=@{};$received=Get-MotionAstraOnlinePayload $version $network $state
+ $state=@{};$received=Get-MotionAstraOnlinePayload ('v'+$version) $network $state
  Assert-MotionAstraPayload $received;Assert ($script:calls -eq 2) 'Incorrect network flow'
  # Archive traversal rejected even when the transport digest matches.
  $evil=Join-Path $temp 'evil.zip';$archive=[IO.Compression.ZipFile]::Open($evil,[IO.Compression.ZipArchiveMode]::Create)
  try { [void]$archive.CreateEntry('MotionAstra-FX/../../escape.txt') } finally { $archive.Dispose() }
  Reject { Expand-MotionAstraDownload $evil (Join-Path $temp 'evil') ('sha256:'+(Get-FileHash $evil).Hash) (Get-Item $evil).Length }
  $assembly=[Reflection.Assembly]::LoadFile((Join-Path $root 'dist\Install ZxT-Motions.exe'))
- foreach ($name in @('WindowsUI.ps1','Window.xaml','Backend.ps1','Download.ps1','SetupVersion.txt')) { Assert ($assembly.GetManifestResourceNames() -contains $name) ('EXE missing '+$name) }
- Write-Host 'PASS: standalone EXE resources, pinned release metadata, download flow, digest checks, package integrity and traversal rejection.'
+ foreach ($name in @('WindowsUI.ps1','Window.xaml','Backend.ps1','Download.ps1','SetupMode.txt')) { Assert ($assembly.GetManifestResourceNames() -contains $name) ('EXE missing '+$name) }
+ Write-Host 'PASS: standalone EXE resources, selected release metadata, download flow, digest checks, package integrity and traversal rejection.'
 } finally { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }

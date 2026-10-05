@@ -10,13 +10,11 @@ assert 'asset="ZxT-Motions_v${version}.zip"' in workflow
 assert '--prerelease' not in workflow and '--latest' in workflow
 assert 'Official Release' in workflow
 fetch=(root/'installer/windows/Download.ps1').read_text()
-assert '-alpha' not in fetch
-assert "'/releases/tags/v'" not in fetch # URL is full repository path, pinned to exact version
-assert "'https://api.github.com/repos/AmadZaky/ZxT-Motions/releases/tags/v'+$Version)" in fetch
-assert '$Release.prerelease' in fetch
+assert '/releases/latest' in fetch and '/releases?per_page=100&page=' in fetch
+assert 'Get-MotionAstraReleasePackage' in fetch
 assert "^sha256:" in fetch and "Get-FileHash" in fetch
 package=(root/'tools/package-release.py').read_text()
 assert "version+'.zip'" in package and '-alpha.zip' not in package
 for f in ['README.md','INSTALLATION_GUIDE.md']:
  text=(root/f).read_text();assert 'has not been published yet' not in text
-print('PASS: v1.0.0 stable tag/assets, pinned official installer route, integrity checks and matching docs')
+print('PASS: v1.0.0 stable tag/assets, universal official-default installer route, integrity checks and matching docs')

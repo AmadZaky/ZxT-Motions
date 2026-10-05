@@ -10,7 +10,7 @@ Windows-only Adobe After Effects 2025 CEP extension. This release combines the S
 - Preset Paste rebuilds only known setups via existing engines, skips existing managed presets, protects target animation, and keeps layer timing/layer count unchanged.
 - Copy is read-only and session-only. Paste uses one undo group; existing target keyframes and expressions are skipped rather than overwritten. Compatible dimensions and Position representation are required.
 - Preserves Studio layouts, all 134 presets, themes/accents and existing Apply/Update engines.
-- Windows graphical online installer downloads its exact v1.0.0 package after consent, verifies hashes, detects old versions and retains confirmation, backups and rollback.
+- Universal Windows graphical installer discovers releases from GitHub, defaults to the latest Official, shows only version/features, and downloads the selected package after consent and other-version warning acknowledgment, verifies hashes, detects old versions and retains confirmation, backups and rollback.
 
 Download **Install ZxT-Motions.exe**, close AE, run setup, review the destination and consent to installation. Internet is required for setup; the installed panel works offline. The ZIP is available for offline/manual installation. Destination: `%APPDATA%\Adobe\CEP\extensions\MotionAstra-FX`.
 

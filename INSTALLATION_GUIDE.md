@@ -7,8 +7,8 @@ This build targets After Effects 2025 on Windows. macOS is not supported, no Mac
 
 1. Download **Install ZxT-Motions.exe** from the release assets at https://github.com/AmadZaky/ZxT-Motions/releases. This single file contains the setup UI; no ZIP extraction is needed.
 2. Close After Effects and open the EXE. Review the installation destination.
-3. Check the download/install consent box and choose **Install** or **Update**. No network request starts before this consent.
-4. Keep an internet connection while setup downloads its matching version from GitHub. It checks the archive's SHA-256 against GitHub release metadata, then verifies package files before changing any installed copy.
+3. Check the download/install consent box and choose **Install** or **Update**. Only public release metadata loads before consent; plugin-package downloads start after consent.
+4. Keep an internet connection while setup downloads your selected version from GitHub. It checks the archive's SHA-256 against GitHub release metadata, then verifies package files before changing any installed copy.
 5. If old copies are detected, review their paths and confirm replacement. Backups and rollback remain enabled.
 6. Select **Done**, restart AE and open **Window → Extensions → ZxT-Motions**. Settings should show **1.0.0**.
 
@@ -72,3 +72,14 @@ Choose Library for presets, Motion for Quick Tools/Curve, or Create for new laye
 5. Test on a duplicate project first. These automated tests model AE behavior; they cannot verify real AE rendering or every installed font/plugin.
 
 For validation coverage and native AE checks, see `docs/STUDIO_UI_VALIDATION.md`.
+
+
+## Universal Windows installer
+
+Download **Install ZxT-Motions.exe**, close After Effects and open it. Setup fetches the public release list; no plugin package is downloaded until you consent and press Install/Update. The default is GitHub’s latest **Official** release, regardless of older Alpha builds having higher version numbers. New releases appear without downloading a new installer.
+
+Choose a version; its version label and included features are displayed. Other versions show a warning and require acknowledgment. Changing the selection resets that acknowledgment. Rerun setup and select Refresh if the list cannot load. Releases without a valid package are visible but unavailable.
+
+The selected package is downloaded only from this repository, checked against its published SHA256 and size, safely extracted, and checked for extension/version identity and internal integrity before old files are moved. Legacy MotionAstra archives are supported when their verified contents are compatible; missing VERSION/checksum metadata is generated only after archive integrity verification. An incompatible package fails before replacement. The installer keeps replacement confirmation, backups and rollback.
+
+Destination remains `%APPDATA%\Adobe\CEP\extensions\MotionAstra-FX`. The universal EXE requires internet, including when bundled in a ZIP; the ZIP’s PowerShell installer remains available for offline installation of that bundled version. Experimental/older versions may contain bugs, omit current fixes or behave differently with projects/settings. Selecting them does not establish compatibility with native AE 2025.

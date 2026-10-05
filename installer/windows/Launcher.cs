@@ -19,7 +19,7 @@ internal static class Launcher {
         try {
             Directory.CreateDirectory(root);
             var assembly = Assembly.GetExecutingAssembly();
-            foreach (string name in new [] { "WindowsUI.ps1", "Window.xaml", "Backend.ps1", "Download.ps1", "SetupVersion.txt" }) {
+            foreach (string name in new [] { "WindowsUI.ps1", "Window.xaml", "Backend.ps1", "Download.ps1", "SetupMode.txt" }) {
                 using (var input = assembly.GetManifestResourceStream(name)) {
                     if (input == null) throw new Exception("Setup resource missing: " + name);
                     using (var output = File.Create(Path.Combine(root, name))) input.CopyTo(output);

@@ -22,7 +22,7 @@ with zipfile.ZipFile(args.output,'w',zipfile.ZIP_DEFLATED) as z:
   info=zipfile.ZipInfo(name);info.create_system=3;info.external_attr=(0o100000|mode)<<16;info.compress_type=zipfile.ZIP_DEFLATED;z.writestr(info,data)
  for name,data in sorted(payload.items()):put('MotionAstra-FX/'+name,data)
  if args.windows_launcher: put('Install ZxT-Motions.exe',args.windows_launcher.read_bytes())
- for source,destination in [('installer/windows/WindowsUI.ps1','Installer/WindowsUI.ps1'),('installer/windows/Window.xaml','Installer/Window.xaml'),('install-windows.ps1','Installer/Backend.ps1')]:
+ for source,destination in [('installer/windows/WindowsUI.ps1','Installer/WindowsUI.ps1'),('installer/windows/Window.xaml','Installer/Window.xaml'),('install-windows.ps1','Installer/Backend.ps1'),('installer/windows/Download.ps1','Installer/Download.ps1')]:
   put(destination,(root/source).read_bytes())
  for source,destination,mode in [('Install MotionAstra.cmd','Install MotionAstra.cmd',0o644),('install-windows.ps1','Install MotionAstra.ps1',0o644),('INSTALLATION_GUIDE.md','INSTALLATION_GUIDE.md',0o644)]:
   data=(root/source).read_bytes()
