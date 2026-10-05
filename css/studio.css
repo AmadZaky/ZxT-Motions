@@ -57,13 +57,6 @@ nav,#quick{background:var(--panel)}
 .collection-filters{display:flex;flex-wrap:wrap;gap:5px;padding:4px 10px;margin:8px 0 12px}
 .collection-filters button{font-size:11px;padding:4px 10px;min-height:26px}
 .collection-filters [aria-pressed=true]{background:var(--accent-fill);color:var(--on-accent)}
-#selected-layer-inspector{margin:2px 10px 6px;font-size:11px;min-width:0}
-#selected-layer-inspector>summary{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:5px 0;color:var(--muted)}
-#selection-content{max-height:140px;overflow:auto;overflow-wrap:anywhere}
-.selection-layer{padding:8px 0;border-top:1px solid var(--line)}
-.selection-layer p{font-size:11px;margin:4px 0}
-.selection-layer button,#selection-refresh{font-size:11px;padding:4px 8px;margin:3px 3px 3px 0}
-.selection-warning{color:var(--accent)}
 .card,.yu-card{position:relative}
 .favorite-toggle{position:absolute;right:6px;top:6px;z-index:1;width:28px;height:28px;padding:0;border-radius:8px;background:var(--panel);font-size:20px;line-height:1;color:var(--text)}
 .favorite-toggle[aria-pressed=true]{color:var(--accent)}
@@ -72,7 +65,6 @@ nav,#quick{background:var(--panel)}
 .target-guidance:empty{display:none}
 
 #yu-selection-guidance,.animation-settings-guide{font-size:11px;color:var(--muted);line-height:1.5}
-#selected-layer-inspector{padding:0;background:transparent}
 .yu-card .favorite-toggle{width:28px;height:28px;padding:0;font-size:20px}
 
 /* Studio workspace: one browsing scroll region and one Inspector slot. */
@@ -87,7 +79,6 @@ nav,#quick{background:var(--panel)}
 #yu-browser { overflow:visible; }
 #yu.yu-inspecting #yu-browser { display:block; }
 #workspace > #inspector { min-width:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
-#selected-layer-inspector { max-height:120px; overflow:auto; }
 #selection-summary { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .card-actions { grid-template-columns:1fr; }
 .card-actions .customize { width:100%; }

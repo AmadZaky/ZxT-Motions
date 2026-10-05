@@ -158,6 +158,16 @@ body{background:var(--bg);color:var(--text)}header{background:var(--panel)}butto
 .category-tabs button:focus-visible{outline:1px solid var(--accent);outline-offset:-1px}
 nav{padding-top:6px;padding-bottom:6px}
 @media(max-width:339px){.category-tabs button{font-size:10px}}
+
+/* Create settings collapse independently; submit actions stay visible. */
+.create-card .create-section{margin:0;padding:0;border:0;border-radius:0;background:transparent;min-width:0}
+.create-section>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;padding:4px 32px 4px 0;min-width:0}
+.create-section>summary::-webkit-details-marker{display:none}
+.create-section>summary::after{content:'⌄';color:var(--muted);transition:transform .18s ease;flex-shrink:0}
+.create-section[open]>summary::after{transform:rotate(180deg)}
+.create-section>summary h2{margin:0}
+.create-options{display:flex;flex-direction:column;gap:12px;padding-top:14px;min-width:0}
+.create-section>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
 </style>
     <style>/* Studio shell: dense library, quiet surfaces and a responsive Customize dock. */
 :root{--bg:#1b1b1d;--surface:#242426;--panel:#202022;--input:#18181a;--line:#ffffff14;--muted:#a4a4ab}
@@ -218,13 +228,6 @@ nav,#quick{background:var(--panel)}
 .collection-filters{display:flex;flex-wrap:wrap;gap:5px;padding:4px 10px;margin:8px 0 12px}
 .collection-filters button{font-size:11px;padding:4px 10px;min-height:26px}
 .collection-filters [aria-pressed=true]{background:var(--accent-fill);color:var(--on-accent)}
-#selected-layer-inspector{margin:2px 10px 6px;font-size:11px;min-width:0}
-#selected-layer-inspector>summary{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:5px 0;color:var(--muted)}
-#selection-content{max-height:140px;overflow:auto;overflow-wrap:anywhere}
-.selection-layer{padding:8px 0;border-top:1px solid var(--line)}
-.selection-layer p{font-size:11px;margin:4px 0}
-.selection-layer button,#selection-refresh{font-size:11px;padding:4px 8px;margin:3px 3px 3px 0}
-.selection-warning{color:var(--accent)}
 .card,.yu-card{position:relative}
 .favorite-toggle{position:absolute;right:6px;top:6px;z-index:1;width:28px;height:28px;padding:0;border-radius:8px;background:var(--panel);font-size:20px;line-height:1;color:var(--text)}
 .favorite-toggle[aria-pressed=true]{color:var(--accent)}
@@ -233,7 +236,6 @@ nav,#quick{background:var(--panel)}
 .target-guidance:empty{display:none}
 
 #yu-selection-guidance,.animation-settings-guide{font-size:11px;color:var(--muted);line-height:1.5}
-#selected-layer-inspector{padding:0;background:transparent}
 .yu-card .favorite-toggle{width:28px;height:28px;padding:0;font-size:20px}
 
 /* Studio workspace: one browsing scroll region and one Inspector slot. */
@@ -248,7 +250,6 @@ nav,#quick{background:var(--panel)}
 #yu-browser { overflow:visible; }
 #yu.yu-inspecting #yu-browser { display:block; }
 #workspace > #inspector { min-width:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; }
-#selected-layer-inspector { max-height:120px; overflow:auto; }
 #selection-summary { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .card-actions { grid-template-columns:1fr; }
 .card-actions .customize { width:100%; }
@@ -339,7 +340,6 @@ nav,#quick{background:var(--panel)}
         ><button id="load-fx" data-host>
           <i data-lucide="sliders-horizontal"></i>Load settings</button>
       </div>
-      <details id="selected-layer-inspector"><summary id="selection-summary">Layer Inspector</summary><div id="selection-content"></div><button id="selection-refresh" data-host>Refresh selection</button></details>
     </div>
     <div id="workspace">
       <aside id="inspector-empty" aria-label="Inspector"><span class="eyebrow">INSPECTOR</span><h2>Make it move.</h2><p>Select a preset to preview and configure it. Select a layer in After Effects, then Apply.</p><p>Already applied? Use Load settings to update that instance here.</p></aside>
@@ -352,7 +352,9 @@ nav,#quick{background:var(--panel)}
           <p id="create-empty" class="empty" hidden></p>
           <div class="create-grid">
             <form id="create-text" class="create-card">
-              <h2><i data-lucide="type"></i> Text</h2>
+              <details class="create-section">
+                <summary><h2><i data-lucide="type"></i> Text</h2></summary>
+                <div class="create-options">
               <label
                 >Content<textarea
                   id="new-text-content"
@@ -416,6 +418,8 @@ ZxT-Motions</textarea
                   Refresh fonts
                 </button>
               </div>
+                </div>
+              </details>
               <button
                 type="submit"
                 class="primary"
@@ -426,7 +430,9 @@ ZxT-Motions</textarea
               </button>
             </form>
             <form id="create-shape" class="create-card">
-              <h2><i data-lucide="shapes"></i> Shape</h2>
+              <details class="create-section">
+                <summary><h2><i data-lucide="shapes"></i> Shape</h2></summary>
+                <div class="create-options">
               <label
                 >Shape<select id="new-shape-type">
                   <option value="circle">Circle</option>
@@ -461,6 +467,8 @@ ZxT-Motions</textarea
                   type="color"
                   value="#ff943f"
               /></label>
+                </div>
+              </details>
               <button
                 type="submit"
                 class="primary"
@@ -471,7 +479,9 @@ ZxT-Motions</textarea
               </button>
             </form>
             <form id="create-background" class="create-card">
-              <h2><i data-lucide="layers"></i> Solid Color</h2>
+              <details class="create-section">
+                <summary><h2><i data-lucide="layers"></i> Solid Color</h2></summary>
+                <div class="create-options">
               <p class="hint">
                 One full-size solid, placed at the bottom for the whole
                 composition.
@@ -503,13 +513,15 @@ ZxT-Motions</textarea
                 class="color-swatches"
                 aria-label="Recent background colors"
               ></div>
+                </div>
+              </details>
               <button
                 type="submit"
                 class="primary"
                 data-create="newSolid"
                 data-host
               >
-                Create background
+                Create solid
               </button>
             </form>
           </div>
@@ -736,17 +748,8 @@ ZxT-Motions</textarea
           <div class="eyebrow">EVERYDAY CONTROLS</div>
           <h1>Quick Tools</h1>
           <p>
-            Tools operate on selected layers. Edits use one Undo step; Copy Motion only reads keyframes.
+            Tools operate on selected layers. Edits use one Undo step.
           </p>
-          <details id="transform-motion" open>
-            <summary><i data-lucide="copy"></i>Copy / Paste Motion</summary>
-            <div class="button-grid">
-              <button id="copy-motion" type="button" data-host>Copy Motion</button>
-              <button id="paste-motion" type="button" data-host disabled>Paste Motion</button>
-            </div>
-            <p id="motion-clipboard" class="hint" role="status">Copy preset motion or Transform keyframes from one layer. Paste starts at the playhead.</p>
-            <p class="hint">Transform only. Existing target keyframes and expressions are protected; those properties are skipped.</p>
-          </details>
           <details id="tweaker" open>
             <summary>FX settings</summary>
             <p>
@@ -8377,6 +8380,10 @@ window.MotionAstraCreate = (() => {
       ["create-background", "newSolid"],
     ].forEach(([id, kind]) => {
       $(id).onsubmit = (e) => submit(e, kind);
+      // Expose invalid native controls before the browser tries to focus them.
+      $(id).addEventListener("invalid", () => {
+        $(id).querySelector(".create-section").open = true;
+      }, true);
     });
   }
   return { init, activate, setBusy, refreshCollection };
@@ -8528,8 +8535,7 @@ window.MotionAstraSearch = (() => {
 /* Selected-layer context is advisory; host target validation remains authoritative. */
 window.ZxTSelection = (() => {
   'use strict';
-  let current = null, adapter, signature = '', connected = false;
-  const $ = id => document.getElementById(id);
+  let current = null, connected = false;
   function match(a,b){return !!a&&!!b&&a.comp===b.comp&&a.layer===b.layer&&a.token===b.token;}
   function eligibility(category,id,operation,target){
     if(!connected)return {allowed:false,reason:'Connect to After Effects first.'};
@@ -8553,33 +8559,8 @@ window.ZxTSelection = (() => {
     if(operation==='update'&&category!=='YU'&&!layers.some(l=>!l.locked&&l.core&&l.core.id===id)&&!current.truncated)return {allowed:false,reason:'Apply this preset first, or load an existing instance.'};
     return {allowed:true,reason:text.length<count?'Applies to unlocked text layers; other selected layer types are skipped.':'Ready for the selected text layer'+(count===1?'':'s')+'.'};
   }
-  function render(){
-    if(!adapter)return;
-    const box=$('selection-content'),summary=$('selection-summary');box.textContent='';
-    if(!connected){summary.textContent='Layer Inspector · Preview mode';return;}
-    if(!current){summary.textContent='Layer Inspector · Refresh to inspect selection';return;}
-    if(current.compId===null){summary.textContent='Layer Inspector · Open a composition';return;}
-    if(!current.total){summary.textContent='Layer Inspector · No layers selected';box.textContent='Select a layer to inspect its FX. SolidGen can generate without a selection.';return;}
-    summary.textContent=current.total===1?current.layers[0].name+' · '+current.layers[0].type+(current.layers[0].locked?' · Locked':''):current.total+' layers selected';
-    current.layers.forEach(row=>{
-      const item=document.createElement('div');item.className='selection-layer';
-      const heading=document.createElement('strong');heading.textContent=row.name+' · '+row.type+(row.locked?' · Locked':'');item.appendChild(heading);
-      const names=[];if(row.core)names.push(row.core.name);
-      row.animations.forEach(a=>{const p=window.YTMCore&&YTMCore.presets.find(p=>p.id===a.id);names.push((p?p.name:'Text animation '+a.id)+' · '+a.phase);});
-      const text=document.createElement('p');text.textContent=names.length?names.join(' / '):'No ZxT-Motions preset detected.';item.appendChild(text);
-      if(current.total===1){
-        const add=(label,fn)=>{const b=document.createElement('button');b.textContent=label;b.dataset.host='';b.onclick=fn;b.disabled=adapter.busy();item.appendChild(b);};
-        if(row.core)add('Load FX settings',()=>adapter.loadCore());
-        row.animations.forEach(a=>add('Load '+a.phase+' animation',()=>adapter.loadAnimation(a.phase)));
-      }
-      if(row.effectCount){const d=document.createElement('details'),s=document.createElement('summary'),p=document.createElement('p');s.textContent=row.effectCount+' native effects';p.textContent=row.effects.join(' · ')+(row.effectCount>row.effects.length?' · …':'');d.append(s,p);item.appendChild(d);}
-      if(row.warning){const warning=document.createElement('p');warning.textContent=row.warning;warning.className='selection-warning';item.appendChild(warning);}
-      box.appendChild(item);
-    });
-    if(current.truncated){const p=document.createElement('p');p.textContent='Showing the first 50 selected layers.';box.appendChild(p);}
-  }
-  function update(response,ready){connected=ready;current=response&&response.selection||null;const next=JSON.stringify([connected,current]);if(next!==signature){signature=next;render();}}
-  return {context(){ return current; },init(a){adapter=a;$('selection-refresh').onclick=a.refresh;render();},update,eligibility};
+  function update(response,ready){connected=ready;current=response&&response.selection||null;}
+  return {context(){ return current; },update,eligibility};
 })();
 
 </script>
@@ -8682,7 +8663,6 @@ window.ZxTWorkspace = (() => {
     bridge = window.MotionAstraBridge;
   const state = {
       tab: "Text",
-      motionClipboard: null,
       preset: null,
       params: {},
       busy: false,
@@ -8749,8 +8729,6 @@ window.ZxTWorkspace = (() => {
     document
       .querySelectorAll("[data-host]")
       .forEach((b) => (b.disabled = value || !bridge.isReady()));
-    $("paste-motion").disabled = $("paste-motion").disabled || !state.motionClipboard;
-    $("paste-motion").title = state.motionClipboard ? "Paste copied motion at the playhead; existing animation is protected." : "Copy Motion from one animated layer first.";
     $("apply").disabled = $("apply").disabled || state.invalid.size > 0;
     $("compact-fx").disabled =
       $("compact-fx").disabled ||
@@ -8791,7 +8769,7 @@ window.ZxTWorkspace = (() => {
     $("recovery").hidden = !state.recovery;
     if (state.recovery) {
       $("recovery-message").textContent = "Check the result in AE before retrying. Load settings or inspect the timeline; no automatic retry was sent.";
-      document.querySelectorAll("[data-host]").forEach(b => { if (!["load-fx","selection-refresh","tweaker-load"].includes(b.id)) b.disabled = true; });
+      document.querySelectorAll("[data-host]").forEach(b => { if (!["load-fx","tweaker-load"].includes(b.id)) b.disabled = true; });
     }
     $("recovery-continue").disabled = value;
     if (window.MotionAstraYUUI) window.MotionAstraYUUI.setBusy(value);
@@ -8824,7 +8802,7 @@ window.ZxTWorkspace = (() => {
     busy(state.busy);
   }
   function mutates(payload) {
-    return ["apply","update","generateBackground","tool","compact","pasteMotion"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
+    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
   }
   async function action(payload) {
     if (state.busy || (state.recovery && mutates(payload))) return null;
@@ -8845,8 +8823,7 @@ window.ZxTWorkspace = (() => {
         if (["apply", "update", "generateBackground"].includes(payload.action)) ZxTCollections.record("core:" + payload.id);
         if (payload.action === "yuText" && payload.operation === "apply") ZxTCollections.record("yu:" + payload.id);
       }
-      if (r.changed > 0 && r.severity === "warning" && (payload.action !== "pasteMotion" || r.recovery)) state.recovery = true;
-      if (payload.action === "pasteMotion" && r.recovery) state.recovery = true;
+      if (r.changed > 0 && r.severity === "warning") state.recovery = true;
       if (r.message) notice(r.message, r.severity || "success");
       return r;
     } catch (e) {
@@ -9300,27 +9277,6 @@ window.ZxTWorkspace = (() => {
         if (!state.busy) tab(b.dataset.tab);
       }),
   );
-  $("copy-motion").onclick = async () => {
-    if (state.busy || state.recovery) return;
-    // A failed recopy must not leave a stale buffer ready for accidental Paste.
-    state.motionClipboard = null;
-    $("motion-clipboard").textContent = "Copy preset motion or Transform keyframes from one layer. Paste starts at the playhead.";
-    const result = await action({action: "copyMotion"});
-    if (result && result.motion) {
-      state.motionClipboard = result.motion;
-      $("motion-clipboard").textContent = result.motion.schema === "zxt-preset-motion-1"
-        ? `Preset motion ready · ${result.motion.core ? "ZxT preset" : ""}${result.motion.core && result.motion.yu.length ? " + " : ""}${result.motion.yu.length ? "Text Animate IN/OUT" : ""}. Paste starts at the playhead.`
-        : `${result.motion.properties.length} properties · ${result.motion.keyframes} keyframes ready. Paste starts at the playhead.`;
-    }
-    busy(state.busy);
-  };
-  $("paste-motion").onclick = () => {
-    if (!state.motionClipboard) {
-      notice("Copy Motion from one animated layer first.", "info");
-      return;
-    }
-    return action({action: "pasteMotion", motion: state.motionClipboard});
-  };
   const glyphs = ["↖", "↑", "↗", "←", "·", "→", "↙", "↓", "↘"];
   glyphs.forEach((g, i) => {
     const b = el("button", "", g);
@@ -9469,10 +9425,6 @@ window.ZxTWorkspace = (() => {
   $("text-tools-group").ontoggle = () => {
     store.set("ma-text-tools-folded", !$("text-tools-group").open);
   };
-  if (window.ZxTSelection) ZxTSelection.init({
-    refresh, busy: () => state.busy, loadCore: load,
-    loadAnimation: phase => { tab("YU"); return window.MotionAstraYUUI.load(phase); }
-  });
   if (window.ZxTCollections) {
     document.querySelectorAll("[data-collection]").forEach(b => b.onclick = () => ZxTCollections.setMode(b.dataset.collection, b.closest("[data-collection-scope]").dataset.collectionScope));
     ZxTCollections.subscribe(() => {

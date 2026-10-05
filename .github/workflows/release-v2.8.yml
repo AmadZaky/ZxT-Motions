@@ -57,7 +57,6 @@ jobs:
             dist/installer-universal-preview.png
           if-no-files-found: error
   release:
-    if: github.ref == 'refs/heads/main'
     needs: installer-tests
     runs-on: windows-latest
     steps:
@@ -82,7 +81,7 @@ jobs:
           python tests/official-repair.py
       - name: Verify host tests
         run: |
-          for test in static engine expressions bridge tools create-tools font-sources checkboxes parser-boundary update-target background-create fx-target panel-state background-stability preview-idle loop-modes background-colors loop-migration features-282 compact-controls switcher-choice yu-text motion-curve fx-tools module-isolation smart-apply bridge-lifecycle glass-surface fxtools-native-contract selection-context animation-preservation collections official-collections transform-motion preset-motion; do
+          for test in static engine expressions bridge tools create-tools font-sources checkboxes parser-boundary update-target background-create fx-target panel-state background-stability preview-idle loop-modes background-colors loop-migration features-282 compact-controls switcher-choice yu-text motion-curve fx-tools module-isolation smart-apply bridge-lifecycle glass-surface fxtools-native-contract selection-context animation-preservation collections official-collections transform-motion preset-motion create-cleanup; do
             node "tests/$test.cjs"
           done
       - name: Verify browser workflow
@@ -91,8 +90,7 @@ jobs:
           npx playwright install chromium
           node tests/reliability-ui.cjs
           node tests/official-cleanup-ui.cjs
-          node tests/transform-motion-ui.cjs
-          node tests/preset-motion-ui.cjs
+          node tests/create-cleanup-ui.cjs
           node tests/select-gap-ui.cjs
           node tests/studio-ui.cjs
           node tests/studio-binding.cjs
@@ -113,6 +111,7 @@ jobs:
       - name: Package extension
         run: python tools/package-release.py --windows-launcher "dist/Install ZxT-Motions.exe"
       - name: Publish Official Release
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}

@@ -40,3 +40,49 @@ for(const kind of ['choice','progress','color']){
 console.log('PASS: authored Choice/Progress/color keys, mixed core+YU+Transform relative timing, conflict skips, protected effects/masks/animators/notes, malformed clipboards and native failure rollback.');
 // Pasted preset timing follows its owned start/end markers after a layer move.
 {const e=setup(),s=e.layer();s.selected=true;e.rpc({action:'apply',id:'counter',params:{duration:2}});const copied=e.rpc({action:'copyMotion'});s.selected=false;const t=e.layer();t.selected=true;e.comp.time=3;assert.equal(e.rpc({action:'pasteMotion',motion:copied.motion}).changed,1);t.markers.keys.forEach(k=>k.time+=.5);assert.equal(e.rpc({action:'load'}).params.duration,2);assert.equal(e.rpc({action:'update',id:'counter',params:{duration:2}}).changed,1);assert(t.markers.keys.some(k=>k.time===3.5));}
+// AE/Windows can store identical generated selector code with CRLF or CR line endings.
+for (const newline of ['\r\n', '\r']) for (let id=1; id<=120; id++) {
+ const e=setup(),s=e.layer();s.selected=true;
+ assert.equal(e.rpc({action:'yuText',operation:'apply',id,options:{...o,mode:'OUT'}}).changed,1);
+ const group=s.text.property('ADBE Text Animators');
+ for(const a of group.items) {
+  const amount=a.property('ADBE Text Selectors').property(1).property('ADBE Text Expressible Amount');
+  amount.expression=amount.expression.replace(/\r\n?|\n/g,newline);
+ }
+ const original=group.items.map(a=>a.property('ADBE Text Selectors').property(1).property('ADBE Text Expressible Amount').expression);
+ const comment=s.comment,undoCount=e.undo.length,copied=e.rpc({action:'copyMotion'});
+ assert(copied.ok,'Native line endings / OUT '+id+': '+copied.message);
+ assert.equal(copied.motion.yu.length,1);assert.equal(copied.motion.yu[0].phase,'OUT');assert.equal(copied.motion.yu[0].time,0);
+ assert.equal(s.comment,comment);assert.equal(e.undo.length,undoCount);
+ assert.deepEqual(group.items.map(a=>a.property('ADBE Text Selectors').property(1).property('ADBE Text Expressible Amount').expression),original);
+ s.selected=false;const t=e.layer();t.selected=true;e.comp.time=3;
+ const pasted=e.rpc({action:'pasteMotion',motion:copied.motion});assert.equal(pasted.changed,1,pasted.message);
+ const record=JSON.parse(t.comment.match(/\[MA_YU\](.*?)\[\/MA_YU\]/)[1]);
+ assert.equal(record.OUT.id,id);assert.equal(record.OUT.options.playhead,3);assert(!record.IN);
+ // Custom selector expressions may now be copied, while Update remains non-destructive.
+ t.selected=false;s.selected=true;
+ const amount=group.items[0].property('ADBE Text Selectors').property(1).property('ADBE Text Expressible Amount');
+ amount.expression+='\n42;';
+ const customCopy=e.rpc({action:'copyMotion'});assert(customCopy.ok,customCopy.message);assert(customCopy.motion.yu[0].expressions.some(x=>x.expression.endsWith('42;')));
+ assert.equal(e.rpc({action:'yuText',operation:'apply',id,options:{...o,mode:'OUT'}}).changed,0);
+ assert(amount.expression.endsWith('42;'));
+}
+console.log('PASS: all 120 OUT presets with native CRLF/CR storage, read-only Copy, OUT-only CTI Paste and genuinely edited expression protection.');
+
+// Authorized selector expression copying is session-only and exact; unrelated data is excluded.
+for(const phase of ['IN','OUT'])for(const enabled of [true,false]){
+ const e=setup(),s=e.layer();s.selected=true;
+ e.rpc({action:'yuText',operation:'apply',id:17,options:{...o,mode:phase}});
+ const amount=s.text.property('ADBE Text Animators').items[0].property('ADBE Text Selectors').property(1).property('ADBE Text Expressible Amount');
+ const custom='// Custom author expression\r\n(time - inPoint) * 20;';amount.expression=custom;amount.expressionEnabled=enabled;
+ const original=s.comment,undo=e.undo.length,copy=e.rpc({action:'copyMotion'});
+ assert(copy.ok,copy.message);assert.equal(s.comment,original);assert.equal(amount.expression,custom);assert.equal(e.undo.length,undo);
+ const overrides=copy.motion.yu[0].expressions;assert.equal(overrides.length,1);assert.equal(overrides[0].expression,custom);assert.equal(overrides[0].enabled,enabled);
+ s.selected=false;const a=e.layer(),b=e.layer();a.selected=b.selected=true;e.comp.time=3;
+ const result=e.rpc({action:'pasteMotion',motion:copy.motion});assert.equal(result.changed,2,result.message);
+ for(const t of [a,b]){const p=t.text.property('ADBE Text Animators').items.find(x=>x.name.startsWith('YTM '+phase+' | ')).property('ADBE Text Selectors').property(1).property('ADBE Text Expressible Amount');assert.equal(p.expression,custom);assert.equal(p.expressionEnabled,enabled);}
+ a.selected=b.selected=false;const empty=e.layer();empty.selected=true;
+ for(const mutate of [c=>c.yu[0].expressions.push(c.yu[0].expressions[0]),c=>c.yu[0].expressions[0].channel='unrelated',c=>c.yu[0].expressions[0].enabled='yes',c=>c.yu[0].expressions[0].expression=42]){const bad=JSON.parse(JSON.stringify(copy.motion));mutate(bad);assert.equal(e.rpc({action:'pasteMotion',motion:bad}).ok,false);assert.equal(empty.comment,'');assert.equal(empty.text.property('ADBE Text Animators').numProperties,0);}
+ empty.selected=false;s.selected=true;amount.numKeys=1;assert.equal(e.rpc({action:'copyMotion'}).ok,false,'Selector keyframes must not be silently discarded');
+}
+console.log('PASS: explicit IN/OUT custom expression copying, exact code/enabled state, read-only source, multi-target, malformed override rejection and selector keyframe protection.');
