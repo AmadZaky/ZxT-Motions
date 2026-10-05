@@ -12,7 +12,7 @@ $script:latest=Release 'v1.0.0';$script:alpha=Release 'v3.6.1-alpha' $true;$scri
 $script:missing=@{tag_name='Alpha';prerelease=$true;draft=$false;assets=@();body=''}
 $script:rows=@($script:alpha,$script:latest,$script:old,$script:missing)
 $script:requests=@()
-function Invoke-RestMethod { param($Uri,$Headers,$TimeoutSec);$script:requests+=@($Uri);if ($Uri.EndsWith('/latest')) { return $script:latest };return $script:rows }
+function Invoke-RestMethod { param($Uri,$Headers,$TimeoutSec);$script:requests+=@($Uri);if ($Uri.EndsWith('/latest')) { return $script:latest };return ,$script:rows }
 $c=Get-MotionAstraReleaseCatalog
 Assert ($c.Releases.Count -eq 4) 'Catalog omitted old/unavailable versions'
 Assert ($c.LatestTag -eq 'v1.0.0') 'Latest must come from GitHub Official metadata, not numeric ordering'
