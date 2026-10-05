@@ -30,7 +30,10 @@ function Get-MotionAstraReleaseCatalog {
     catch { if (-not $_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 404) { throw } }
     $rows=@();$page=1
     do {
-        $batch=@(Invoke-RestMethod -Uri ($script:MotionAstraRepository+'/releases?per_page=100&page='+$page) -Headers $headers -TimeoutSec 30)
+        # Windows PowerShell REST emits a JSON array as one pipeline object.
+        # Assign first, then enumerate the response itself rather than wrapping its pipeline.
+        $response=Invoke-RestMethod -Uri ($script:MotionAstraRepository+'/releases?per_page=100&page='+$page) -Headers $headers -TimeoutSec 30
+        $batch=@($response)
         foreach ($release in $batch) {
             if ($release.draft) { continue }
             $reason='';$version='';$available=$false

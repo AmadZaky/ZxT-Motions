@@ -12,7 +12,7 @@ $script:latest=Release 'v1.0.0';$script:alpha=Release 'v3.6.1-alpha' $true;$scri
 $script:missing=@{tag_name='Alpha';prerelease=$true;draft=$false;assets=@();body=''}
 $script:rows=@($script:alpha,$script:latest,$script:old,$script:missing)
 $script:requests=@()
-function Invoke-RestMethod { param($Uri,$Headers,$TimeoutSec);$script:requests+=@($Uri);if ($Uri.EndsWith('/latest')) { return $script:latest };return $script:rows }
+function Invoke-RestMethod { param($Uri,$Headers,$TimeoutSec);$script:requests+=@($Uri);if ($Uri.EndsWith('/latest')) { return $script:latest };return ,$script:rows }
 $c=Get-MotionAstraReleaseCatalog
 Assert ($c.Releases.Count -eq 4) 'Catalog omitted old/unavailable versions'
 Assert ($c.LatestTag -eq 'v1.0.0') 'Latest must come from GitHub Official metadata, not numeric ordering'
@@ -25,7 +25,7 @@ Assert ((ConvertTo-MotionAstraPackageVersion 'v2.8-pre-alpha') -eq '2.8.0') 'Leg
 $script:latest=Release 'v1.2.0';$script:rows=@($script:alpha,$script:latest)
 $c=Get-MotionAstraReleaseCatalog;Assert ($c.LatestTag -eq 'v1.2.0' -and $c.Releases[1].Recommended) 'Universal installer stayed pinned'
 $script:rows=@(1..100 | ForEach-Object { Release ('v1.0.'+$_) });$script:pages=0
-function Invoke-RestMethod { param($Uri,$Headers,$TimeoutSec);if ($Uri.EndsWith('/latest')) { return $script:latest };$script:pages++;if ($script:pages -eq 1) { return $script:rows };return @($script:latest) }
+function Invoke-RestMethod { param($Uri,$Headers,$TimeoutSec);if ($Uri.EndsWith('/latest')) { return $script:latest };$script:pages++;if ($script:pages -eq 1) { return ,$script:rows };return ,@($script:latest) }
 $c=Get-MotionAstraReleaseCatalog;Assert ($c.Releases.Count -eq 101 -and $script:pages -eq 2) 'Release pagination failed'
 foreach ($bad in @('v1.0.0/../../x','https://evil.com','1.0.0')) { Reject { ConvertTo-MotionAstraPackageVersion $bad } }
 $bad=Release 'v1.0.0';$bad.assets[0].digest='';Reject { Get-MotionAstraReleasePackage $bad 'v1.0.0' }
