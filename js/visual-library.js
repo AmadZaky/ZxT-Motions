@@ -21,6 +21,20 @@ window.ShapeLibrary = (() => {
     const c = window.ZxTSelection && ZxTSelection.context();
     return JSON.stringify(c ? [c.compId, c.layers.map((l) => l.id)] : null);
   }
+  function nativeSelectionMatches(response, key) {
+    const captured = JSON.parse(key),
+      target = response && response.selectionTarget;
+    return !!(
+      captured &&
+      captured[1].length === 1 &&
+      target &&
+      target.comp === captured[0] &&
+      target.layer === captured[1][0] &&
+      (!response.instance ||
+        (response.instance.target.comp === target.comp &&
+          response.instance.target.layer === target.layer))
+    );
+  }
   function guidance() {
     if (!api.ready()) return "Connect to After Effects first.";
     const c = ZxTSelection.context();
@@ -36,7 +50,7 @@ window.ShapeLibrary = (() => {
         return "Selection changed. Select the loaded Shape layer or Load settings again.";
       if (row.locked) return "Unlock the selected Shape layer.";
     }
-    if (!c.layers.some((l) => l.type === "Shape" && !l.locked))
+    if (!c.layers.some((l) => l.type === "Shape" && !l.locked) && !c.truncated)
       return "Select an unlocked Shape layer.";
     return "";
   }
@@ -123,17 +137,27 @@ window.ShapeLibrary = (() => {
   async function load() {
     if (busy || !preset) return;
     save(); // Preserve the original selection's dirty draft before loading another.
-    const id = preset.id,
+    const sequence = ++opening,
+      id = preset.id,
       key = selectionKey(),
       r = await api.action({ action: "shapeLibrary", operation: "load", id });
-    if (r && preset && preset.id === id && selectionKey() === key) {
+    if (
+      sequence === opening &&
+      visible &&
+      !$("shape-inspector").hidden &&
+      r &&
+      preset &&
+      preset.id === id &&
+      selectionKey() === key &&
+      nativeSelectionMatches(r, key)
+    ) {
       const nextKey = ZxTWorkspace.draftKey("shape:" + id);
       if (nextKey !== draftKey) {
         const nextDraft = drafts[nextKey];
         params = nextDraft
           ? { ...nextDraft.params }
           : Object.fromEntries(
-              preset.parameters.map((p) => [p.key, p.default]),
+              preset.parameters.map((p) => [p.key, p.default])
             );
         draftKey = nextKey;
       }
@@ -197,7 +221,8 @@ window.ShapeLibrary = (() => {
         sequence === opening &&
         preset.id === id &&
         key === selectionKey() &&
-        r
+        r &&
+        nativeSelectionMatches(r, key)
       )
         useInstance(r.instance);
     }
@@ -206,15 +231,26 @@ window.ShapeLibrary = (() => {
     if (busy || !preset) return;
     sync();
     if ($(update ? "shape-update" : "shape-apply").disabled) return;
+    save();
     const r = await api.action({
       action: "shapeLibrary",
       operation: update ? "update" : "apply",
       id: preset.id,
       params: { ...params },
       target: update && loaded ? loaded.target : undefined,
-      revision: update && loaded ? loaded.revision : undefined,
+      revision: update && loaded ? loaded.revision : undefined
     });
-    if (r && r.changed > 0 && r.instance && !r.recovery) {
+    if (
+      r &&
+      r.changed > 0 &&
+      r.instance &&
+      !r.recovery &&
+      nativeSelectionMatches(
+        { selectionTarget: r.instance.target, instance: r.instance },
+        selectionKey()
+      )
+    ) {
+      draftKey = ZxTWorkspace.draftKey("shape:" + preset.id);
       useInstance(r.instance);
       ShapePreview.play($("shape-preview"), preset.id, params, true);
     }

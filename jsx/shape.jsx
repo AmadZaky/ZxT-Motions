@@ -451,6 +451,8 @@ function applyOne(c, l, a, p) {
       states: []
     };
   }
+  if (p.duration && (r.start < l.inPoint || r.start >= l.outPoint))
+    stop("Original start is outside the current layer bounds.");
   if (p.duration && r.start + p.duration > l.outPoint + 0.000001)
     stop("Duration extends beyond the layer out-point.");
   try {
@@ -507,10 +509,12 @@ function run(a, shared) {
     layerId(layers[0]);
     var d = read(layers[0]),
       r = instance(d, a.id);
-    if (!r) return { ok: true, instance: null };
+    var selectionTarget = { comp: compId(c), layer: layerId(layers[0]) };
+    if (!r) return { ok: true, selectionTarget: selectionTarget, instance: null };
     owned(layers[0], r);
     return {
       ok: true,
+      selectionTarget: selectionTarget,
       instance: {
         id: r.id,
         params: r.params,
@@ -541,7 +545,10 @@ function run(a, shared) {
       changed++;
     } catch (e) {
       errors.push(l.name + ": " + String(e));
-      if (e.recovery) recovery = true;
+      if (e.recovery) {
+        recovery = true;
+        break;
+      }
     }
   }
   var result = {

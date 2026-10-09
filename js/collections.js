@@ -11,7 +11,13 @@ window.ZxTCollections = (() => {
   const modes = {global:'all', Text:'all', Solid:'all', Shape:'all', Media:'all', Create:'all'};
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(key)) || {}; } catch (_) {}
-  const clean = (a, limit) => Array.isArray(a) ? [...new Set(a.filter(k => known.has(k)))].slice(0, limit) : [];
+  // Retain unavailable IDs in storage so a missing registry cannot erase another
+  // section. Only registered items are exposed; the known Recent bound stays20.
+  const clean = (a, limit) => {
+    let count = 0;
+    return Array.isArray(a) ? [...new Set(a.filter(k => typeof k === 'string'))]
+      .filter(k => !known.has(k) || count++ < limit) : [];
+  };
   let favorites = clean(saved.favorites, known.size), recent = clean(saved.recent, 20);
   function emit(save) {
     if (save) try { localStorage.setItem(key, JSON.stringify({favorites, recent})); } catch (_) {}
@@ -20,9 +26,9 @@ window.ZxTCollections = (() => {
   return {
     get mode() { return modes.global; },
     getMode(scope = "global") { return modes[scope] || "all"; },
-    isFavorite(k) { return favorites.includes(k); },
+    isFavorite(k) { return known.has(k) && favorites.includes(k); },
     toggle(k) { if (!known.has(k)) return; favorites = favorites.includes(k) ? favorites.filter(v => v !== k) : [...favorites, k]; emit(true); },
-    record(k) { if (!known.has(k)) return; recent = [k, ...recent.filter(v => v !== k)].slice(0, 20); emit(true); },
+    record(k) { if (!known.has(k)) return; recent = clean([k, ...recent.filter(v => v !== k)], 20); emit(true); },
     setMode(value, scope = 'global') { if (!['all','favorites','recent'].includes(value) || !(scope in modes)) return; modes[scope] = value; emit(false); },
     subscribe(fn) { listeners.push(fn); },
     filter(items, id, scope = "global") {
