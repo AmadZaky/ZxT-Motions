@@ -18,9 +18,9 @@ window.ZxTWorkspace = (() => {
   function navigate(name) {
     positions[section] = origin ? scroll : main.scrollTop;
     section = name;
-    if (["YU","Background","Shape","Media"].includes(name)) library = name;
+    if (["YU","Background","Shape"].includes(name)) library = name;
     if (["Tools","Curve"].includes(name)) motion = name;
-    const group = ['YU','Background','Shape','Media'].includes(name) ? 'Library' : ['Tools','Curve'].includes(name) ? 'Motion' : name;
+    const group = ['YU','Background','Shape'].includes(name) ? 'Library' : ['Tools','Curve'].includes(name) ? 'Motion' : name;
     $('workspace').classList.toggle('library-workspace', group === 'Library');
     $('library-navigation').hidden = group !== 'Library';
     $('motion-navigation').hidden = group !== 'Motion';
@@ -30,7 +30,6 @@ window.ZxTWorkspace = (() => {
     });
     $('yu-editor').hidden = true;
     $('shape-inspector').hidden = true;
-    $('media-inspector').hidden = true;
     closed();
   }
   return {opened,closed,navigate,draftKey(id) {

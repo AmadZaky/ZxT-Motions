@@ -159,7 +159,7 @@ for (const max of [1, 100]) {
   const add = l.fx.addProperty.bind(l.fx);
   l.fx.addProperty = (n) => {
     const g = add(n);
-    g.property("ADBE Glo2-0002").maxValue = max;
+    if (n === "ADBE Glo2") g.property("ADBE Glo2-0002").maxValue = max;
     return g;
   };
   assert.equal(

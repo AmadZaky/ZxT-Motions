@@ -182,7 +182,7 @@
         "];" +
         "if(!module||module.build!==" +
         expected +
-        '||typeof module.run!=="function"' + (moduleKey === "mediaLibrary" ? '||module.mediaVersion!==1' : moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + '){' +
+        '||typeof module.run!=="function"' + (moduleKey === "mediaLibrary" ? '||module.mediaVersion!==1' : moduleKey === "shapeLibrary" ? '||module.shapeVersion!==2' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + '){' +
         "var file=File(" +
         JSON.stringify(extensionPath + "/jsx/" + module.file) +
         ");" +
@@ -199,7 +199,7 @@
         "];" +
         "if(!module||module.build!==" +
         expected +
-        '||typeof module.run!=="function"' + (moduleKey === "mediaLibrary" ? '||module.mediaVersion!==1' : moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + ')throw Error(' +
+        '||typeof module.run!=="function"' + (moduleKey === "mediaLibrary" ? '||module.mediaVersion!==1' : moduleKey === "shapeLibrary" ? '||module.shapeVersion!==2' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + ')throw Error(' +
         JSON.stringify(
           module.label + " failed to register. Reinstall the complete package."
         ) +

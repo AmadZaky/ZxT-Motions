@@ -77,3 +77,13 @@ Initialization validates the live global dispatcher before each serialized comma
 `installer/windows/Launcher.cs` compiles to a windowed .NET Framework executable. It launches `Installer/WindowsUI.ps1` using local Windows PowerShell 5.1 with no console window. The WPF view is `Window.xaml`. All UI control access stays on the STA dispatcher. File work runs on a separate PowerShell runspace; a synchronized state object carries progress and confirmation requests.
 
 The existing backend accepts optional confirmation/progress callbacks, retaining its CLI defaults. Replacement is confirmed before any old installation moves. The transaction retains its checksum verification, backups and rollback. Windows CI builds the executable and renders the WPF window before release packaging.
+
+## Shape controls and Media retirement (unreleased)
+
+Active Library is Text | Shape | SolidGen. Media frontend entry points are removed; archived Media sources and host routes remain for project compatibility. No project mutation or collection deletion occurs on panel startup.
+
+Shape metadata and generated UI/ES3 files remain isolated in shape-presets.json, js/shape-presets-data.js and jsx/shape.jsx (tools/build-shape.py from src/shape-host.js). Seven presets use the same scoped host route. Token-owned operator/effect plus token-owned Slider Control descriptors form one logical instance in the existing schema1 ZXT_SHAPE comment. Optional controlVersion1 distinguishes upgraded instances; legacy records load read-only and migrate inside the existing transaction.
+
+Native scalar bindings reference sliders by exact tokened name. Load samples live values, exports animated parameter keys and snapshots control values, expressions, keys/interpolation/ease for revision validation. Captured sampled values accompany revision so moving CTI does not invalidate a load. Changed keyframed/expression-controlled sliders are rejected; unrelated updates preserve their animation. Managed effect/operator properties still require exact recorded state. Indexed-property references are reacquired after effect additions/removals. Rollback removes only newly created controls/nodes and restores changed unkeyed values/native bindings/comments; incomplete rollback requests Undo and stops remaining targets.
+
+The Shape module exports shapeVersion2 and the bridge requires it, so an RC1 module cached in a running AE session is reloaded even when public build remains1.0.1. Core route capability1 and other optional-module guards are unchanged.

@@ -79,7 +79,7 @@ window.ShapeLibrary = (() => {
       (loaded
         ? "Updates the loaded owned instance; its start time stays fixed."
         : "Applies to unlocked Shape layers. Other selected layer types are skipped.");
-    for (const control of controls.values()) control.disabled = busy;
+    for (const [key, control] of controls) control.disabled = busy || !!(loaded && loaded.keyed && loaded.keyed.includes(key));
     $("shape-back").disabled = busy;
   }
   function drawForm() {
@@ -90,6 +90,7 @@ window.ShapeLibrary = (() => {
       wrap.className = "parameter";
       const label = document.createElement("label");
       label.textContent = p.label;
+      if (loaded && loaded.keyed && loaded.keyed.includes(p.key)) label.textContent += " · AE animation";
       label.htmlFor = "shape-param-" + p.key;
       const input = document.createElement(
         p.type === "select" ? "select" : "input",
@@ -112,6 +113,7 @@ window.ShapeLibrary = (() => {
         input.className = "exact";
       }
       input.value = params[p.key];
+      if (loaded && loaded.keyed && loaded.keyed.includes(p.key)) input.title = "Edit this animated control in AE Effect Controls, then Load settings.";
       input.oninput = () => {
         params[p.key] = p.type === "number" ? Number(input.value) : input.value;
         if (p.type === "number" && !input.value) params[p.key] = NaN;

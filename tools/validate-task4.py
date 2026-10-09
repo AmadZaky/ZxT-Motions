@@ -6,6 +6,7 @@ results=[]
 commands=[r['command'] for r in json.loads((root/'docs/task2/validation-results.json').read_text())['results']]
 commands += ['node tests/media-host.cjs','node tests/media-safety.cjs','node tests/media-bridge.cjs','node tests/media-collections.cjs','node tests/media-boundaries.cjs','node tests/media-ui.cjs']
 commands += ['node tests/task4-collections.cjs','node tests/task4-shape-host.cjs','node tests/task4-shape-ui.cjs','node tests/task4-library-ui.cjs','node tests/task4-shape-advisory.cjs']
+commands += ['node tests/media-retirement.cjs','node tests/shape-controls.cjs','node tests/shape-controls-ui.cjs','node tests/shape-preview.cjs']
 for command in commands:
  p=subprocess.run(shlex.split(command),cwd=root,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
  results.append(dict(command=command,exitCode=p.returncode,output=p.stdout))

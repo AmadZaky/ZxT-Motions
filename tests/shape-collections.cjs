@@ -5,7 +5,7 @@ const registry = require("../shape-presets.json"),
   source = fs.readFileSync("js/collections.js", "utf8");
 assert.deepEqual(
   registry.presets.map((p) => p.id),
-  ["trim-in", "path-wiggle", "glow", "blur-pulse"],
+  ["trim-in", "path-wiggle", "glow", "blur-pulse", "gaussian-blur", "drop-shadow", "turbulent-displace"],
 );
 let saved = JSON.stringify({
   favorites: ["core:counter", "core:neongrid", "yu:1"],

@@ -94,6 +94,18 @@ function read(l) {
       )
         stop("Shape property record is invalid.");
     }
+    if (r.controlVersion !== undefined || r.controls !== undefined) {
+      var specs = numeric(r.id);
+      if (r.controlVersion !== 1 || !(r.controls instanceof Array) || r.controls.length !== specs.length)
+        stop("Shape control ownership record is invalid.");
+      for (j = 0; j < specs.length; j++)
+        if (!r.controls[j] || r.controls[j].key !== specs[j].key || r.controls[j].name !== controlName(r, specs[j].key))
+          stop("Shape control ownership record is invalid.");
+    } else {
+      for (j = 0; j < r.states.length; j++)
+        if (r.states[j].expression.indexOf("ZxT Shape Control | ") >= 0)
+          stop("Shape controller ownership is missing; restore it before Update.");
+    }
   }
   return data;
 }
@@ -194,6 +206,111 @@ function validateOwned(g, r) {
       );
   }
 }
+function numeric(id) {
+  var all = definition(id).parameters, out = [];
+  for (var i = 0; i < all.length; i++) if (all[i].type === "number") out.push(all[i]);
+  return out;
+}
+function controlName(r, key) {
+  return "ZxT Shape Control | " + r.id + " | " + r.token + " | " + key;
+}
+function control(l, descriptor) {
+  var effects = l.property("ADBE Effect Parade"), found = null, count = 0;
+  for (var i = 1; effects && i <= effects.numProperties; i++) {
+    var g = effects.property(i);
+    if (g.name === descriptor.name) { found = g; count++; }
+  }
+  if (count !== 1 || found.matchName !== "ADBE Slider Control" || !found.property("ADBE Slider Control-0001"))
+    stop("Owned Shape slider was removed, renamed, duplicated or changed type. Restore it before Update.");
+  return found;
+}
+function controlState(l, descriptor) {
+  var p = control(l, descriptor).property("ADBE Slider Control-0001"), out = snapshot(p);
+  out.key = descriptor.key;
+  out.keys = [];
+  for (var i = 1; i <= p.numKeys; i++) {
+    var k = {time:p.keyTime(i), value:p.keyValue(i)};
+    if (p.keyInInterpolationType) {
+      k.input = String(p.keyInInterpolationType(i)); k.output = String(p.keyOutInterpolationType(i));
+      k.inEase = easeState(p.keyInTemporalEase(i)); k.outEase = easeState(p.keyOutTemporalEase(i));
+      k.auto = p.keyTemporalAutoBezier(i); k.continuous = p.keyTemporalContinuous(i);
+    }
+    out.keys.push(k);
+  }
+  return out;
+}
+function easeState(values) {
+  var out = [];
+  for (var i = 0; i < values.length; i++) out.push({speed:values[i].speed, influence:values[i].influence});
+  return out;
+}
+function controlStates(l, r) {
+  var out = [];
+  for (var i = 0; r.controls && i < r.controls.length; i++) out.push(controlState(l, r.controls[i]));
+  return out;
+}
+function liveParams(l, r, time) {
+  var out = parameters(r.id, r.params), specs = numeric(r.id);
+  for (var i = 0; r.controls && i < r.controls.length; i++) {
+    var v = control(l, r.controls[i]).property("ADBE Slider Control-0001").valueAtTime(specs[i].key === "duration" ? r.start : time, false);
+    if (typeof v !== "number" || !isFinite(v)) stop("Invalid live Shape slider: " + specs[i].label);
+    out[specs[i].key] = Math.max(specs[i].min, Math.min(specs[i].max, v));
+  }
+  return out;
+}
+function revision(l, r, p) {
+  return codec.encode({record:r, controls:controlStates(l, r), params:p});
+}
+function checkRevision(l, r, text) {
+  var saved;
+  try { saved = codec.parse(text); } catch (e) { stop("Shape settings changed. Load them again before Update."); }
+  if (!saved || codec.encode(saved.record) !== codec.encode(r) || codec.encode(saved.controls) !== codec.encode(controlStates(l, r)))
+    stop("Shape settings changed. Load them again before Update.");
+  return parameters(r.id, saved.params);
+}
+function ensureControls(l, r, p, added) {
+  if (r.controls) return;
+  r.controlVersion = 1; r.controls = [];
+  var specs = numeric(r.id), effects = l.property("ADBE Effect Parade");
+  for (var i = 0; i < specs.length; i++) {
+    if (!effects || !effects.canAddProperty("ADBE Slider Control")) stop("AE Slider Control is unavailable.");
+    var desc = {key:specs[i].key, name:controlName(r, specs[i].key)}, node = effects.addProperty("ADBE Slider Control");
+    try { node.name = desc.name; } catch (e) {
+      try { node.remove(); } catch (rollbackError) { e.recovery = true; }
+      throw e;
+    }
+    added.push(desc); r.controls.push(desc);
+    control(l, desc).property("ADBE Slider Control-0001").setValue(p[desc.key]);
+  }
+}
+function updateControls(l, r, p, protectedParams, changed) {
+  for (var i = 0; i < r.controls.length; i++) {
+    var desc = r.controls[i], prop = control(l, desc).property("ADBE Slider Control-0001"), key = desc.key;
+    if (prop.numKeys || String(prop.expression || "")) {
+      if (Math.abs(p[key] - protectedParams[key]) > 0.000001)
+        stop("" + key + " has AE keyframes or an expression. Edit it in AE Effect Controls, then Load settings.");
+    } else if (Math.abs(base(prop) - p[key]) > 0.000001) {
+      changed.push({descriptor:desc, state:snapshot(prop)});
+      prop.setValue(p[key]);
+    }
+  }
+}
+function binding(r, key, atStart) {
+  var specs = numeric(r.id), spec;
+  for (var i = 0; i < specs.length; i++) if (specs[i].key === key) spec = specs[i];
+  return "Math.max(" + spec.min + ",Math.min(" + spec.max + ",effect(" + codec.encode(controlName(r, key)) + ")(1).valueAtTime(" + (atStart ? r.start : "time") + ")))";
+}
+function bound(r, key, factor) {
+  return "// ZxT Shape " + r.token + "\n" + binding(r, key, false) + (factor === undefined ? "" : "*" + factor) + ";";
+}
+function exported(c, l, r) {
+  var p = liveParams(l, r, c.time), keyed = [];
+  for (var i = 0; r.controls && i < r.controls.length; i++) {
+    var prop = control(l, r.controls[i]).property("ADBE Slider Control-0001");
+    if (prop.numKeys || String(prop.expression || "")) keyed.push(r.controls[i].key);
+  }
+  return {id:r.id, params:p, start:r.start, target:identity(c,l,r), revision:revision(l,r,p), keyed:keyed};
+}
 function scalar(g, name, v, expression) {
   var p = g.property(name);
   if (!p || typeof base(p) !== "number")
@@ -226,10 +343,11 @@ function timed(r, p, pulse) {
     "\nvar u=Math.max(0,Math.min(1,(time-" +
     r.start +
     ")/" +
-    p.duration +
+    binding(r, "duration", true) +
     "));\n";
   if (pulse) s += "u=1-Math.abs(2*u-1);\n";
-  return s + ease(p.easing) + (pulse ? p.amount : 100) + "*u;";
+  if (pulse) return s + ease(p.easing) + binding(r, "amount", false) + "*u;";
+  return s + ease(p.easing) + "var a=" + binding(r,"start",false) + ";a+(" + binding(r,"end",false) + "-a)*u;";
 }
 function matches(id) {
   if (id === "trim-in")
@@ -251,6 +369,8 @@ function matches(id) {
       "ADBE Glo2-0003",
       "ADBE Glo2-0004"
     ];
+  if (id === "drop-shadow") return ["ADBE Drop Shadow-0002", "ADBE Drop Shadow-0003", "ADBE Drop Shadow-0004", "ADBE Drop Shadow-0005"];
+  if (id === "turbulent-displace") return ["ADBE Turbulent Displace-0002", "ADBE Turbulent Displace-0003", "ADBE Turbulent Displace-0005", "ADBE Turbulent Displace-0006"];
   return [
     "ADBE Gaussian Blur 2-0001",
     "ADBE Gaussian Blur 2-0002",
@@ -259,8 +379,8 @@ function matches(id) {
 }
 function configure(g, r, p) {
   if (r.id === "trim-in") {
-    scalar(g, "ADBE Vector Trim Start", 0);
-    scalar(g, "ADBE Vector Trim Offset", 0);
+    scalar(g, "ADBE Vector Trim Start", p.start, bound(r,"start"));
+    scalar(g, "ADBE Vector Trim Offset", p.offset, bound(r,"offset"));
     scalar(g, "ADBE Vector Trim End", 100, timed(r, p, false));
   } else if (r.id === "path-wiggle") {
     scalar(
@@ -272,11 +392,11 @@ function configure(g, r, p) {
         "\ntime < " +
         r.start +
         " ? 0 : " +
-        p.amount +
+        binding(r, "amount", false) +
         ";"
     );
-    scalar(g, "ADBE Vector Roughen Detail", p.detail);
-    scalar(g, "ADBE Vector Temporal Freq", p.speed);
+    scalar(g, "ADBE Vector Roughen Detail", p.detail, bound(r,"detail"));
+    scalar(g, "ADBE Vector Temporal Freq", p.speed, bound(r,"speed"));
   } else if (r.id === "glow") {
     var threshold = g.property("ADBE Glo2-0002");
     if (!threshold || !threshold.hasMax)
@@ -284,13 +404,28 @@ function configure(g, r, p) {
     var limit = threshold.maxValue;
     if (limit !== 1 && limit !== 100) stop("Unsupported Glow threshold range.");
     scalar(g, "ADBE Glo2-0001", 1);
-    scalar(g, "ADBE Glo2-0002", (p.threshold * limit) / 100);
-    scalar(g, "ADBE Glo2-0003", p.radius);
-    scalar(g, "ADBE Glo2-0004", p.intensity);
+    scalar(g, "ADBE Glo2-0002", (p.threshold * limit) / 100, bound(r,"threshold",limit / 100));
+    scalar(g, "ADBE Glo2-0003", p.radius, bound(r,"radius"));
+    scalar(g, "ADBE Glo2-0004", p.intensity, bound(r,"intensity"));
+  } else if (r.id === "drop-shadow") {
+    var opacity = g.property("ADBE Drop Shadow-0002");
+    if (!opacity || !opacity.hasMax || (opacity.maxValue !== 1 && opacity.maxValue !== 100 && opacity.maxValue !== 255))
+      stop("Unsupported native Drop Shadow opacity range.");
+    var factor = opacity.maxValue / 100;
+    scalar(g,"ADBE Drop Shadow-0002",p.opacity * factor,bound(r,"opacity",factor));
+    scalar(g,"ADBE Drop Shadow-0003",p.direction,bound(r,"direction"));
+    scalar(g,"ADBE Drop Shadow-0004",p.distance,bound(r,"distance"));
+    scalar(g,"ADBE Drop Shadow-0005",p.softness,bound(r,"softness"));
+  } else if (r.id === "turbulent-displace") {
+    scalar(g,"ADBE Turbulent Displace-0002",p.amount,bound(r,"amount"));
+    scalar(g,"ADBE Turbulent Displace-0003",p.size,bound(r,"size"));
+    scalar(g,"ADBE Turbulent Displace-0005",p.complexity,bound(r,"complexity"));
+    scalar(g,"ADBE Turbulent Displace-0006",p.evolution,bound(r,"evolution"));
   } else {
     scalar(g, "ADBE Gaussian Blur 2-0002", 1);
     scalar(g, "ADBE Gaussian Blur 2-0003", 1);
-    scalar(g, "ADBE Gaussian Blur 2-0001", 0, timed(r, p, true));
+    if (r.id === "blur-pulse") scalar(g, "ADBE Gaussian Blur 2-0001", 0, timed(r, p, true));
+    else scalar(g, "ADBE Gaussian Blur 2-0001", p.amount, bound(r,"amount"));
   }
 }
 function groupPath(l, id) {
@@ -384,7 +519,10 @@ function createNode(l, r) {
     };
   } else {
     group = l.property("ADBE Effect Parade");
-    match = r.id === "glow" ? "ADBE Glo2" : "ADBE Gaussian Blur 2";
+    match = "ADBE Gaussian Blur 2";
+    if (r.id === "glow") match = "ADBE Glo2";
+    if (r.id === "drop-shadow") match = "ADBE Drop Shadow";
+    if (r.id === "turbulent-displace") match = "ADBE Turbulent Displace";
     r.node = {
       kind: "effect",
       match: match,
@@ -424,21 +562,22 @@ function applyOne(c, l, a, p) {
     oldComment = String(l.comment || ""),
     g,
     created = false,
-    before = null;
+    before = null,
+    added = [], controlChanges = [], protectedParams = null;
   if (a.operation === "update") {
     if (!r) stop("No owned instance. Apply first.");
     if (!same(a.target, identity(c, l, r)))
       stop("Selection changed. Load Shape settings again.");
-    if (a.revision !== codec.encode(r))
-      stop("Shape settings changed. Load them again before Update.");
+    protectedParams = checkRevision(l, r, a.revision);
   }
   if (r) {
     g = owned(l, r);
     validateOwned(g, r);
     before = states(g, matches(r.id));
+    if (!protectedParams) protectedParams = liveParams(l, r, c.time);
   } else {
     if (a.operation !== "apply") stop("Apply this Shape preset first.");
-    if (a.id !== "glow" && (c.time < l.inPoint || c.time >= l.outPoint))
+    if ((a.id === "trim-in" || a.id === "path-wiggle" || a.id === "blur-pulse") && (c.time < l.inPoint || c.time >= l.outPoint))
       stop("Move the playhead inside the selected layer before Apply.");
     r = {
       id: a.id,
@@ -459,6 +598,10 @@ function applyOne(c, l, a, p) {
       created = true;
       g = owned(l, r);
     }
+    ensureControls(l, r, p, added);
+    updateControls(l, r, p, protectedParams || p, controlChanges);
+    // Adding to indexed AE Effect Parade invalidates earlier Property references.
+    g = owned(l, r);
     configure(g, r, p);
     r.params = p;
     r.states = states(g, matches(r.id));
@@ -466,10 +609,15 @@ function applyOne(c, l, a, p) {
     write(l, data);
     return r;
   } catch (error) {
-    var recovery = false;
+    var recovery = !!error.recovery;
     try {
+      if (!created && before) restore(owned(l, r), before);
+      for (var ci = controlChanges.length - 1; ci >= 0; ci--) {
+        var change = controlChanges[ci];
+        control(l, change.descriptor).property("ADBE Slider Control-0001").setValue(change.state.value);
+      }
+      for (var ai = added.length - 1; ai >= 0; ai--) control(l, added[ai]).remove();
       if (created) owned(l, r).remove();
-      else if (before) restore(owned(l, r), before);
       l.comment = oldComment;
     } catch (rollbackError) {
       recovery = true;
@@ -513,13 +661,7 @@ function run(a, shared) {
     return {
       ok: true,
       selectionTarget: selectionTarget,
-      instance: {
-        id: r.id,
-        params: r.params,
-        start: r.start,
-        target: identity(c, layers[0], r),
-        revision: codec.encode(r)
-      }
+      instance: exported(c, layers[0], r)
     };
   }
   if (a.operation === "update" && (layers.length !== 1 || !a.target))
@@ -567,14 +709,8 @@ function run(a, shared) {
   if (recovery) result.recovery = true;
   if (changed === 1 && layers.length === 1) {
     var current = instance(read(layers[0]), a.id);
-    result.instance = {
-      id: current.id,
-      params: current.params,
-      start: current.start,
-      target: identity(c, layers[0], current),
-      revision: codec.encode(current)
-    };
+    result.instance = exported(c, layers[0], current);
   }
   return result;
 }
-return { run: run, shapeVersion: 1 };
+return { run: run, shapeVersion: 2 };

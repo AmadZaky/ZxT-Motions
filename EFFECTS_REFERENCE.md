@@ -318,3 +318,17 @@ Text-only entrance with Direction (Left/Right/Top/Bottom), Distance (pixels), Fa
 | Progress · % | 0 |
 
 All current Text FX have a Text Color picker. Backgrounds have Static Background and numeric Duration fields. Static freezes at the start; None plays once and holds the end.
+
+## Shape controls (unreleased)
+
+| Preset | AE Slider Controls |
+|---|---|
+| Trim Path In | Start 0–100%, End 0–100%, Offset −36000–36000°, Duration 0.05–120s |
+| Path Wiggle | Amount 0–500px, Detail 0–10, Speed 0–20/sec |
+| Glow | Intensity 0–10, Radius 0–500px, Threshold 0–100% |
+| Blur Pulse | Peak Blur 0–500px, Duration 0.05–120s |
+| Gaussian Blur | Blur 0–500px |
+| Drop Shadow | Opacity 0–100%, Direction −36000–36000°, Distance 0–1000px, Softness 0–500px |
+| Turbulent Displace | Amount 0–500px, Size 2–1000px, Complexity 1–10, Evolution −36000–36000° |
+
+Controls appear in AE after Apply. Trim End reveals from Start to End; Duration is sampled at the original Apply time. Easing remains a panel selection. Load reads live sliders; AE-animated sliders are protected from panel replacement. Native Transform/user effects are preserved. Media Motion/FX no longer appear in the active Library; existing project instances are not removed. Native AE2025 validation is pending.

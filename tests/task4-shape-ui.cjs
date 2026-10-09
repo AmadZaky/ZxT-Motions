@@ -77,9 +77,9 @@ const assert = require("node:assert/strict"),
     );
     await page.reload();
     await page.locator('[data-tab="Shape"]').click();
-    assert.equal(await page.locator("#shape-library .card").count(), 4);
+    assert.equal(await page.locator("#shape-library .card").count(), 7);
     await page.locator("#shape-category").selectOption("FX");
-    assert.equal(await page.locator("#shape-library .card").count(), 2);
+    assert.equal(await page.locator("#shape-library .card").count(), 5);
     await page.locator("#shape-category").selectOption("all");
     await page.locator("#shape-search").fill("wiggle");
     assert.equal(await page.locator("#shape-library .card").count(), 1);
@@ -338,7 +338,7 @@ const assert = require("node:assert/strict"),
     assert(await page.locator("#shape-apply").isDisabled());
     await page.locator("#shape-back").click();
     await page.locator('[data-tab="Shape"]').click();
-    assert.equal(await page.locator("#shape-library .card").count(), 4);
+    assert.equal(await page.locator("#shape-library .card").count(), 7);
     await page.locator('[data-tab="Background"]').click();
     assert.equal(await page.locator("#cards .card").count(), 8);
     await page.locator('[data-tab="YU"]').click();

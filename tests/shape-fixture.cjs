@@ -31,7 +31,7 @@ function setup() {
         g.items.forEach((p) => {
           p.parentProperty = g;
           p.hasMin = true;
-          p.minValue = 0;
+          p.minValue = p.matchName === "ADBE Vector Trim Offset" ? -36000 : 0;
           p.hasMax = true;
           p.maxValue = p.matchName.includes("Detail") ? 100 : 10000;
         });
@@ -43,13 +43,15 @@ function setup() {
         return g;
       }
       const g = original.call(this, name);
-      if (["ADBE Glo2", "ADBE Gaussian Blur 2"].includes(name))
+      if (["ADBE Glo2", "ADBE Gaussian Blur 2", "ADBE Drop Shadow", "ADBE Turbulent Displace"].includes(name))
         g.items.forEach((p, i) => {
           p.hasMin = true;
           p.minValue = 0;
           p.hasMax = true;
           p.maxValue = 10000;
           if (name === "ADBE Glo2" && i === 1) p.maxValue = 1;
+          if (name === "ADBE Drop Shadow" && i === 1) p.maxValue = 255;
+          if ((name === "ADBE Drop Shadow" && i === 2) || (name === "ADBE Turbulent Displace" && i === 5)) {p.minValue=-36000;p.maxValue=36000;}
         });
       return g;
     };

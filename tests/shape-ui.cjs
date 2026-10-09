@@ -56,15 +56,11 @@ const assert = require("node:assert/strict"),
     await page.reload();
     assert.deepEqual(
       await page.locator("#library-navigation button").allTextContents(),
-      ["Text", "Shape", "Media", "SolidGen"],
+      ["Text", "Shape", "SolidGen"],
     );
-    assert(
-      await page
-        .locator('[data-tab="Media"]')
-        .isEnabled(),
-    );
+    assert.equal(await page.locator('[data-tab="Media"]').count(), 0);
     await page.locator('[data-tab="Shape"]').click();
-    assert.equal(await page.locator("#shape-library .card").count(), 4);
+    assert.equal(await page.locator("#shape-library .card").count(), 7);
     assert.equal(
       await page
         .locator("#shape-library [data-collection=all]")
@@ -75,7 +71,7 @@ const assert = require("node:assert/strict"),
     assert(await page.locator("#shape-cards-motion").isHidden());
     await page.locator("#shape-family-motion summary").click();
     await page.locator("#shape-category").selectOption("FX");
-    assert.equal(await page.locator("#shape-library .card").count(), 2);
+    assert.equal(await page.locator("#shape-library .card").count(), 5);
     await page.locator("#shape-category").selectOption("all");
     await page.locator("#shape-search").fill("wiggle");
     assert.equal(await page.locator("#shape-library .card").count(), 1);

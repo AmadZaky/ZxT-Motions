@@ -21,7 +21,7 @@ Download only **Install ZxT-Motions.exe** from the release assets. Close AE, ope
 
 ## Studio workspace
 
-Studio keeps Library, Motion and Create in one row. Library contains **Text | Shape | Media | SolidGen**; Quick Tools and Curve live in Motion. At widths below 760 px, Customize opens a separate view; choose **Back to Library** to return. Wider panels keep the library beside the selected preset. Text Tools FX and Text Animate collections can collapse independently. Apply/Update stay above the status area.
+Studio keeps Library, Motion and Create in one row. Library contains **Text | Shape | SolidGen**; Quick Tools and Curve live in Motion. At widths below 760 px, Customize opens a separate view; choose **Back to Library** to return. Wider panels keep the library beside the selected preset. Text Tools FX and Text Animate collections can collapse independently. Apply/Update stay above the status area.
 
 Choose the gear button → **Appearance** to select Orange, Lime Green, Light Blue, Burgundy or Plain White. Use the sun/moon button for dark/light mode. Both choices persist locally and affect only the interface, never preset artwork or AE color values. Search and Quick/Menu collapse controls remain in the header.
 
@@ -35,15 +35,23 @@ Apply/Generate and Update are compact adjacent buttons at the inspector bottom. 
 
 Copy / Paste Motion and the Layer Inspector have been removed from Quick Tools. Selection validation and the preset Inspector remain active. Create has independent collapsible Text, Shape and Solid Color settings; each Create button stays visible when its settings are closed. Opening or closing settings preserves the current form values.
 
-## Shape and Media Library update — awaiting native AE2025 validation
+## Shape controls update — unreleased, awaiting native AE2025 validation
 
-Shape accepts unlocked native Shape layers with stable IDs. Its four pilots are **Trim Path In**, **Path Wiggle**, **Glow** and **Blur Pulse**. Motion pilots require one unambiguous eligible path group; select a path/group when multiple groups exist. Trim needs an enabled visible stroke. No artwork conversion occurs.
+These working-branch changes are newer than the published v1.0.1-rc.1 package. Public release/version and installer behavior are unchanged.
 
-Media accepts unlocked visual footage (stills/video/sequences/compatible imported footage) and precomps. It rejects Text/Shape, Null/Camera/Light, solids/SolidGen, adjustment/audio-only/missing footage and unsupported targets. Four pilots: **Slide Up**, **Pop In**, **Blur Reveal**, **RGB Split · Channel Blur Fringe**. The RGB pilot is the approved chromatic blur alternative, not directional RGB displacement; red blur is Amount, blue half Amount, green/alpha zero.
+Library now contains **Text | Shape | SolidGen**. Media Motion and Media FX are removed from panel navigation, search and Inspector. Existing Media effects, expressions, comments and saved Favorites/Recent are retained; use AE native controls or the prior RC to edit existing Media instances. Compatibility host sources remain in the package; no automatic project cleanup occurs.
 
-Native Layer Transform remains user layout; separately owned Transform effects implement Media motion. User effects/operators, unrelated animation and notes remain intact. Apply supports eligible selected targets; Load/Update require one loaded target. Repeat Apply reuses its owned instance and original start; unsafe edits/ownership/revision mismatch fail safely. Shape/Media Favorites and Recent use the existing local database, with unavailable IDs retained without displaying them. Browsing filters remain scoped; drafts are session-only.
+Shape accepts unlocked native Shape layers with stable IDs. Presets: **Trim Path In**, **Path Wiggle**, **Glow**, **Blur Pulse**, **Gaussian Blur**, **Drop Shadow**, **Turbulent Displace**. Motion pilots require one unambiguous eligible path group; select a path/group when multiple groups exist. Trim needs an enabled visible stroke and does not hide filled artwork.
 
-Previews are illustrative canvases, not native AE pixel renders. Slide distance uses layer-space pixels and follows native scale/rotation; effect stack order, raster sampling/clipping, alpha and Collapse Transformations need native inspection. No vector-quality guarantee or native quality/layout flag changes. Native AE2025 APIs, rendering, Undo/Redo and project save/reopen are **not yet tested**. This source update is being prepared for validation; This1.0.1-rc.1 testing package retains v1.0.0 as the latest stable release. See [final native checklist](docs/task4/AE2025_CHECKLIST.md) and [Task4 report](docs/task4/COMPLETION_REPORT.md).
+After Apply, numeric parameters appear as token-owned **Slider Control** effects in AE Effect Controls. Trim exposes Start/End/Offset/Duration; Wiggle exposes Amount/Detail/Speed; Glow exposes Intensity/Radius/Threshold; Blur Pulse exposes Peak Blur/Duration. Gaussian Blur exposes Amount; Drop Shadow exposes Opacity/Direction/Distance/Softness; Turbulent Displace exposes Amount/Size/Complexity/Evolution. Drop Shadow retains the native default black color. Turbulent Evolution is manually adjustable/keyframeable; there is no automatic loop.
+
+Trim End animates from the Start slider to the End slider. Start/Offset can also be animated. Trim and Blur Pulse sample Duration at the original Apply time. Slider values are clamped to the documented panel ranges when evaluated. The AE slider's visible drag range may need adjustment using AE's native Edit Value dialog for large/negative values.
+
+**Load settings** reads live AE control values at the CTI (Duration at the original start). Animated controls are labeled **AE animation** and protected in the panel; edit their keyframes/expressions in AE, then Load. Update and repeated Apply preserve those keys/expressions; conflicting panel requests fail safely. Unanimated controls remain editable through Update. Change a slider, keyframe/easing, selection or ownership after Load and stale Update is rejected. Legacy RC1 instances gain controls only on a successful Apply/Update; Load is read-only. Existing custom operator/effect keys or expressions still block migration.
+
+Native layer Transform, user effects/operators and notes remain intact. Each preset reuses its owned instance and sliders; no source-layer duplication. Keep owned names and ownership comments intact. Missing, renamed, duplicate or incompatible objects fail safely. Shape Favorites/Recent use `zxt-collections-v1`; unavailable Media IDs survive reload/panel restart without being displayed.
+
+Previews are illustrative, not native renders. Native AE2025 effect ranges, actual expression evaluation, raster bounds/alpha, indexed-property invalidation, Undo/Redo and save/reopen remain **untested**. See [current native checklist](docs/shape-controls/AE2025_CHECKLIST.md). Historical Task2/3/4 reports describe the prior catalog.
 
 ## Quick Tools and FX settings
 

@@ -192,7 +192,7 @@ for (const id of ["trim-in", "blur-pulse"]) {
     id === "trim-in" ? "ADBE Vector Trim End" : "ADBE Gaussian Blur 2-0001",
   );
   const values = [1, 2, 2.5, 3, 4].map((time) =>
-    vm.runInNewContext(p.expression, { time, Math }),
+    vm.runInNewContext(p.expression, { time, Math, effect: name => index => l.fx.property(name).property(index) }),
   );
   if (id === "trim-in") assert.deepEqual(values, [0, 0, 50, 100, 100]);
   else {

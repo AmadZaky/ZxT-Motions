@@ -1,0 +1,399 @@
+{
+  "nativeAEValidated": false,
+  "environment": {
+    "NODE_PATH": "/tmp/zxt-shape-controls-deps/node_modules",
+    "CODEX_PRIMARY_RUNTIME_NODE_MODULES": "/tmp/zxt-shape-controls-deps/node_modules",
+    "CHROMIUM_PATH": "/root/.cache/ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell"
+  },
+  "results": [
+    {
+      "command": "node tests/static.cjs",
+      "exitCode": 0,
+      "output": "PASS: bundle/schema parity, manifest, offline asset graph/catalog, unique DOM IDs, 14 presets and loop mode schemas.\n"
+    },
+    {
+      "command": "node tests/engine.cjs",
+      "exitCode": 0,
+      "output": "PASS 14 recipes, legacy read/update paths, syntax, ownership/removal, type validation and target validation. AE native rendering remains a separate gate.\nPASS removed transition IDs cannot create or update layers.\nPASS: removed presets reject new application without mutation.\n"
+    },
+    {
+      "command": "node tests/expressions.cjs",
+      "exitCode": 0,
+      "output": "PASS: all new recipe expressions evaluated at five times; finite paths/scalars; all loop modes and color binding. Native pixel rendering is not modeled.\nPASS: static backgrounds remain unchanged over time, including manual/reverse overrides.\n"
+    },
+    {
+      "command": "node tests/bridge.cjs",
+      "exitCode": 0,
+      "output": "PASS: real bridge + host in VM; absolute-path boot; quoted Unicode paths; empty/undefined/null/CEP-error recovery; no mutation replay; host/load/undo failures; malformed reply guard; serialized concurrent calls.\n"
+    },
+    {
+      "command": "node tests/tools.cjs",
+      "exitCode": 0,
+      "output": "PASS: 9-point anchors on five source types; negative scale/rotation; parented 3D probe pipeline; separated and keyed positions; expression-offset preservation; mixed locked/camera selection; all six ordering modes; stagger/rename/ease/style/parent/unparent.\nPASS creation: shape geometry/fill, solid color/dimensions, text, CTI timing, selection and invalid-color guard.\n"
+    },
+    {
+      "command": "node tests/create-tools.cjs",
+      "exitCode": 0,
+      "output": "PASS: three shape geometries, native font metadata/style/size/color, invalid-input guards, one full-duration background at stack bottom.\nPASS: failed native text setup removes only the new layer.\n"
+    },
+    {
+      "command": "node tests/font-sources.cjs",
+      "exitCode": 0,
+      "output": "PASS: user/system/Adobe metadata classification and unavailable-metadata fallback.\n"
+    },
+    {
+      "command": "node tests/checkboxes.cjs",
+      "exitCode": 0,
+      "output": "PASS: Reverse/Manual checkbox normalization and invalid-input guards.\n"
+    },
+    {
+      "command": "node tests/parser-boundary.cjs",
+      "exitCode": 0,
+      "output": "PASS: real host JSON dispatch preserves Keep artwork and Reverse under simulated string-like RegExp captures.\n"
+    },
+    {
+      "command": "node tests/update-target.cjs",
+      "exitCode": 0,
+      "output": "PASS: unmatched Update is non-mutating and gives Apply guidance; applied Counter updates.\n"
+    },
+    {
+      "command": "node tests/background-create.cjs",
+      "exitCode": 0,
+      "output": "PASS: all 8 backgrounds create independent layers for Apply/unmatched Update; matching Update does not duplicate.\n"
+    },
+    {
+      "command": "node tests/fx-target.cjs",
+      "exitCode": 0,
+      "output": "PASS: all Text FX require an existing selected text layer.\n"
+    },
+    {
+      "command": "node tests/panel-state.cjs",
+      "exitCode": 0,
+      "output": "PASS: status cannot unlock mutation; card Generate retains customized colors.\n"
+    },
+    {
+      "command": "node tests/background-stability.cjs",
+      "exitCode": 0,
+      "output": "PASS: repeat Generate avoids duplicates; color updates reuse artwork; count rebuilds; intentional new instances remain possible.\n"
+    },
+    {
+      "command": "node tests/preview-idle.cjs",
+      "exitCode": 0,
+      "output": "PASS: completed bounded panel preview idles.\n"
+    },
+    {
+      "command": "node tests/loop-modes.cjs",
+      "exitCode": 0,
+      "output": "PASS: real counter expressions implement Ping-Pong, Cycle, Continue and None, including boundaries.\n"
+    },
+    {
+      "command": "node tests/background-colors.cjs",
+      "exitCode": 0,
+      "output": "PASS: one generated layer per trigger; chosen colors reach native Ramp/Tint values and update without duplicates.\n"
+    },
+    {
+      "command": "node tests/loop-migration.cjs",
+      "exitCode": 0,
+      "output": "PASS: legacy checkbox controls migrate on Update; invalid loop modes reject before mutation.\n"
+    },
+    {
+      "command": "node tests/features-282.cjs",
+      "exitCode": 0,
+      "output": "PASS: replacement preset, stable text colors, installed font selection, comp alignment and distribution.\nPASS: mirrored/rotated parent alignment, selected hierarchy, 3D skip and missing-font guard.\nPASS: old Text FX color expressions retire before clock migration.\n"
+    },
+    {
+      "command": "node tests/compact-controls.cjs",
+      "exitCode": 0,
+      "output": "PASS: compact controllers on all 14 presets, parameter updates, clock values, animated master preservation, target binding and guarded legacy conversion.\nPASS: conversion preserves values and rendering effects on all presets, external dependencies block compaction, Tweaker never generates on stale selection.\n"
+    },
+    {
+      "command": "node tests/switcher-choice.cjs",
+      "exitCode": 0,
+      "output": "PASS: compact Choice controls text, reads native values, preserves animation, explicit edits key at CTI, migrates old instances and retains automatic mode.\nPASS: both layouts preserve keyed Choice and reject expression-driven edits before mutation.\n"
+    },
+    {
+      "command": "node tests/yu-text.cjs",
+      "exitCode": 0,
+      "output": "PASS: 120 YUGraphic presets, 1365 selector expressions match original numerically; compact parameters, phase replacement, load/update, target guards, cleanup and failure preservation. Native AE rendering remains a manual check.\n"
+    },
+    {
+      "command": "node tests/motion-curve.cjs",
+      "exitCode": 0,
+      "output": "PASS: Bezier-to-native speeds/influences, descending/multidimensional/spatial properties, adjacent intervals, outside handles/times/values preserved, validation and native-failure rollback.\n"
+    },
+    {
+      "command": "node tests/fx-tools.cjs",
+      "exitCode": 0,
+      "output": "PASS: extensible FXTools registry; two effects across four layer types; no duplicates, RGBA colors, rotation loops, stacking, guarded updates, owned cleanup and native-error rollback.\n"
+    },
+    {
+      "command": "node tests/module-isolation.cjs",
+      "exitCode": 0,
+      "output": "PASS: FXTools works without YU, YU works without FXTools, explicit exports survive scoped evalFile, cleanup and post-error recovery remain independent.\n"
+    },
+    {
+      "command": "node tests/smart-apply.cjs",
+      "exitCode": 0,
+      "output": "PASS: smart Apply updates existing Text FX and applies fresh layers without duplicate controls.\n"
+    },
+    {
+      "command": "node tests/bridge-lifecycle.cjs",
+      "exitCode": 0,
+      "output": "PASS: missing/replaced AE globals recover before dispatch without replaying a mutation.\n"
+    },
+    {
+      "command": "node tests/glass-surface.cjs",
+      "exitCode": 0,
+      "output": "PASS: Glass Surface Apply/Load/Update/Remove, colors, blur, stable layer/effect counts and source preservation.\n"
+    },
+    {
+      "command": "node tests/fxtools-native-contract.cjs",
+      "exitCode": 0,
+      "output": "PASS: all FXTools native scalar/color contracts and both normalized/percentage host ranges.\n"
+    },
+    {
+      "command": "node tests/selection-context.cjs",
+      "exitCode": 0,
+      "output": "PASS: read-only selection context, core/YU identification, types, locks, malformed metadata isolation and missing composition.\n"
+    },
+    {
+      "command": "node tests/animation-preservation.cjs",
+      "exitCode": 0,
+      "output": "PASS: compact/legacy keyframe preservation, explicit playhead edits, expression guards, version migrations and protected artwork rebuilds.\nPASS: Text Animate protects custom keys/expressions in replaced phases without blocking the other phase or explicit removal.\n"
+    },
+    {
+      "command": "node tests/collections.cjs",
+      "exitCode": 0,
+      "output": "PASS: collections persistence, invalid storage, blocked storage, namespaced IDs, deduplication and 20-item recent bound.\n"
+    },
+    {
+      "command": "node tests/official-collections.cjs",
+      "exitCode": 0,
+      "output": "PASS: tab-local modes and compatible preset/Create collections persistence\n"
+    },
+    {
+      "command": "node tests/transform-motion.cjs",
+      "exitCode": 0,
+      "output": "PASS: Transform-only copy, shared relative timing, CTI 100/112/124, multi-target, interpolation/ease/spatial/roving preservation, conservative conflicts, protected data and per-property rollback.\n"
+    },
+    {
+      "command": "node tests/preset-motion.cjs",
+      "exitCode": 0,
+      "output": "PASS: every core preset and 120 YUGraphic presets, settings, IN/OUT, CTI offsets, multi-target, no new layers/timing edits, repeated Paste conflicts.\nPASS: authored Choice/Progress/color keys, mixed core+YU+Transform relative timing, conflict skips, protected effects/masks/animators/notes, malformed clipboards and native failure rollback.\nPASS: all 120 OUT presets with native CRLF/CR storage, read-only Copy, OUT-only CTI Paste and genuinely edited expression protection.\nPASS: explicit IN/OUT custom expression copying, exact code/enabled state, read-only source, multi-target, malformed override rejection and selector keyframe protection.\n"
+    },
+    {
+      "command": "node tests/create-cleanup.cjs",
+      "exitCode": 0,
+      "output": "PASS: retired tools removed; independent collapsible Create settings and visible submit actions.\n"
+    },
+    {
+      "command": "node tests/studio-binding.cjs",
+      "exitCode": 0,
+      "output": "PASS: post-Apply snapshot and selection-bound reload\n"
+    },
+    {
+      "command": "node tests/shape-host.cjs",
+      "exitCode": 0,
+      "output": "PASS: four Shape pilots, CTI expressions, targets, ownership, repeat Apply/Load/Update, multi/group selection, native preservation, authored-key protection and rollback.\n"
+    },
+    {
+      "command": "node tests/shape-safety.cjs",
+      "exitCode": 0,
+      "output": "PASS: expressions/keys/values, names/duplicates, malformed/stale ownership, native rollback/recovery, module restart and both Glow threshold contracts.\n"
+    },
+    {
+      "command": "node tests/shape-bridge.cjs",
+      "exitCode": 0,
+      "output": "PASS: actual CEP wrapper/core/scoped module load, Shape route isolation, one managed instance, same-version capability guard and missing-module safety.\n"
+    },
+    {
+      "command": "node tests/shape-collections.cjs",
+      "exitCode": 0,
+      "output": "PASS: four pilot metadata, Shape collections and old persistence remain compatible.\n"
+    },
+    {
+      "command": "node tests/shape-boundaries.cjs",
+      "exitCode": 0,
+      "output": "PASS: 123 unchanged host functions; frozen Text/SolidGen, tools, themes, versions, installer; generated Shape metadata parity; authorized additive Media engine.\n"
+    },
+    {
+      "command": "node tests/es3.cjs",
+      "exitCode": 0,
+      "output": "PASS: ExtendScript ES3 grammar and reserved binding/reference identifiers.\n"
+    },
+    {
+      "command": "node tests/reliability-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: inspector target gates, mixed/locked/missing selections, native keyframe preservation via UI, favorites/recent persistence, single generation and Motion preview.\n"
+    },
+    {
+      "command": "node tests/official-cleanup-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: scoped filters, legacy favorites/Create recent persistence, Inspector controls, Apply/Update, removed tools, search, saved themes and responsive layout\n"
+    },
+    {
+      "command": "node tests/create-cleanup-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: removed tools, independent disclosures, reachable Create actions, one layer/click, preserved drafts, validation reveal, keyboard/search, responsive and offline safety.\n"
+    },
+    {
+      "command": "node tests/select-gap-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: Select button equal side gaps, 300\u20131200px, dark/light, no overflow.\n"
+    },
+    {
+      "command": "node tests/studio-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: Studio core/animation split views, exclusive editors, compact back navigation, collapsible collections, five persistent accents in both themes, contrast and offline catalog.\n"
+    },
+    {
+      "command": "node tests/studio-workflow-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: Studio navigation, Apply/Update binding, responsive editors and reachable actions\n"
+    },
+    {
+      "command": "node tests/ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: real Chromium + actual host dispatch/model; all 14 Apply/Update flows, number editing, native settings load, 5 widths, persistent collapse, pinned actions, anchor dispatch, erase confirm/cancel, notification timing/history and offline guard.\n"
+    },
+    {
+      "command": "node tests/checkbox-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS browser: loaded false/off/0.0 stay unchecked, invalid values block mutation until corrected, updated Reverse remains OFF.\n"
+    },
+    {
+      "command": "node tests/tweaker-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: FX Tweaker navigation, compact conversion, parameter search, collapsible groups, updates and stale-selection protection.\n"
+    },
+    {
+      "command": "node tests/yu-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: YU 120-card library, category/search, author credit, Apply/Load/Update/Remove, validation, stale selection, responsive footer and offline guards.\n"
+    },
+    {
+      "command": "node tests/curve-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: curve presets, numeric/pointer/keyboard editing, Apply payload, validation, theme/curve persistence, responsive action footer and offline guard.\n"
+    },
+    {
+      "command": "node tests/font-search-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: Create tab, shape geometry, family/style font selection, text size/color, HEX validation, picker sync, recent-color persistence and failure guard, responsive/offline UI.\n"
+    },
+    {
+      "command": "node tests/global-search-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: merged collection, removal, square previews at three widths, Motion preview text, cross-panel search navigation, keyboard dismissal and offline mutation guard.\n"
+    },
+    {
+      "command": "node tests/switcher-choice-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: loaded native Choice, unrelated panel edit preserves keys, explicit panel edit updates Choice at CTI.\n"
+    },
+    {
+      "command": "node tests/shape-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS: Shape Library, search/categories/families, persistence, Inspector Apply/Update/load, drafts/selection, 12 viewport sizes, frozen existing tab workflow.\n"
+    },
+    {
+      "command": "python tests/package.py",
+      "exitCode": 0,
+      "output": "/tmp/tmp0rma48zb/release.zip\nPASS: ZIP includes panel, Windows launchers only and complete checksums.\n"
+    },
+    {
+      "command": "python tests/official-release.py",
+      "exitCode": 0,
+      "output": "PASS: v1.0.0 stable tag/assets, universal official-default installer route, integrity checks and matching docs\n"
+    },
+    {
+      "command": "python tests/universal-installer.py",
+      "exitCode": 0,
+      "output": "PASS: universal release discovery, version/features-only UI, non-recommended confirmation and version-independent EXE\n"
+    },
+    {
+      "command": "python tests/official-repair.py",
+      "exitCode": 0,
+      "output": "PASS: approved v1.0.0 repair and rejected ordinary same-version changes\n"
+    },
+    {
+      "command": "node tests/media-host.cjs",
+      "exitCode": 0,
+      "output": "PASS Media four pilots, repeat/load/update/revision, source identity, original CTI, vector expression, native/user preservation and modeled Undo labels\n"
+    },
+    {
+      "command": "node tests/media-safety.cjs",
+      "exitCode": 0,
+      "output": "PASS Media type/lock/ID guards, mixed selection, ownership/edit corruption, native contracts, failure rollback/recovery, timing/FPS, optional fade and module restart\n"
+    },
+    {
+      "command": "node tests/media-bridge.cjs",
+      "exitCode": 0,
+      "output": "PASS: actual CEP wrapper/core/scoped module load, Media route isolation, one managed instance, same-version capability guard and missing-module safety.\n"
+    },
+    {
+      "command": "node tests/media-collections.cjs",
+      "exitCode": 0,
+      "output": "PASS: four pilot metadata, Media collections and old persistence remain compatible.\n"
+    },
+    {
+      "command": "node tests/media-boundaries.cjs",
+      "exitCode": 0,
+      "output": "PASS retired Media compatibility bytes, existing Shape IDs/parameters, approved seven-preset scope and generated parity\n"
+    },
+    {
+      "command": "node tests/media-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS Media retirement: no tab/Inspector/search/adapter; saved collections survive reload and panel restart\n"
+    },
+    {
+      "command": "node tests/task4-collections.cjs",
+      "exitCode": 0,
+      "output": "PASS Task4 collections: metadata unavailable, unknown IDs, duplicates, empty/old data, all scopes and restart preservation\n"
+    },
+    {
+      "command": "node tests/task4-shape-host.cjs",
+      "exitCode": 0,
+      "output": "PASS Task4 Shape: null Load identity, uncertain rollback halts remaining targets, trimmed timing safety\n"
+    },
+    {
+      "command": "node tests/task4-shape-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS Shape Inspector Apply/Update, persisted Favorites/Recent and14 viewports, including advisory truncation\n"
+    },
+    {
+      "command": "node tests/task4-library-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS Library Text/Shape/SolidGen,14 viewports, scoped filters/search/collections, stale Inspector removal, listeners/one mutation, archived Media data and panel restart\n"
+    },
+    {
+      "command": "node tests/task4-shape-advisory.cjs",
+      "exitCode": 0,
+      "output": "PASS Task4 Shape advisory status51 targets: baseline bug reproduced and current host-authoritative fix passes\n"
+    },
+    {
+      "command": "node tests/media-retirement.cjs",
+      "exitCode": 0,
+      "output": "PASS Media frontend removed; archived favorites/recent remain intact\n"
+    },
+    {
+      "command": "node tests/shape-controls.cjs",
+      "exitCode": 0,
+      "output": "PASS Shape AE controls, seven presets, live expression evaluation, keyframe preservation/revision safety, ownership/rollback and legacy migration\n"
+    },
+    {
+      "command": "node tests/shape-controls-ui.cjs",
+      "exitCode": 0,
+      "output": "PASS Shape new FX Inspector Apply/Load/Update; live AE values and keyed-control protection\n"
+    },
+    {
+      "command": "node tests/shape-preview.cjs",
+      "exitCode": 0,
+      "output": "PASS illustrative Gaussian Blur/Drop Shadow previews and zero-value controls\n"
+    }
+  ],
+  "summary": {
+    "scripts": 77,
+    "passed": 77
+  }
+}

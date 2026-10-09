@@ -1,3 +1,17 @@
+# Unreleased — Shape controls and Media retirement
+
+This working-branch update follows v1.0.1-rc.1; it is not published. Numeric public version stays 1.0.1.
+
+- Active Library: Text | Shape | SolidGen. Media Motion/FX are retired from the panel; existing project instances and saved collection IDs are preserved.
+- AE Slider Controls for existing Shape presets, including Trim Start/End/Offset/Duration.
+- Three Shape FX added: Gaussian Blur, Drop Shadow and Turbulent Displace.
+- Load reads live AE controls; Update preserves slider keyframes/expressions and protects stale revisions. Legacy Shape instances migrate in place on successful Apply/Update.
+- Text, SolidGen, Create, tools/themes, native layer transforms and installer behavior remain unchanged.
+
+Native AE2025 validation has not been run. Follow docs/shape-controls/AE2025_CHECKLIST.md before distributing a new candidate.
+
+---
+
 # ZxT-Motions v1.0.1-rc.1 — Testing Prerelease
 
 For Windows Adobe After Effects2025 testing. Package/CEP version1.0.1; prerelease tagv1.0.1-rc.1. Native AE2025 validation is outstanding; this is not a stable release and does not replace v1.0.0 as latest.

@@ -6,8 +6,35 @@
       "name": "Trim Path In",
       "category": "Motion",
       "family": "Shape Motion",
-      "description": "Reveals a stroked path with an owned Trim Paths operator. Select a path group in AE when several groups exist. Filled artwork remains visible.",
+      "description": "Reveals a stroked path with an owned Trim Paths operator. Select a path group in AE when several groups exist. Filled artwork remains visible. Numeric parameters are available as owned sliders in AE Effect Controls after Apply.",
       "parameters": [
+        {
+          "key": "start",
+          "label": "Start · %",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 0
+        },
+        {
+          "key": "end",
+          "label": "End · %",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 100
+        },
+        {
+          "key": "offset",
+          "label": "Offset · degrees",
+          "type": "number",
+          "min": -36000,
+          "max": 36000,
+          "step": 1,
+          "default": 0
+        },
         {
           "key": "duration",
           "label": "Duration · seconds",
@@ -21,7 +48,12 @@
           "key": "easing",
           "label": "Easing",
           "type": "select",
-          "options": ["linear", "ease-in", "ease-out", "easy"],
+          "options": [
+            "linear",
+            "ease-in",
+            "ease-out",
+            "easy"
+          ],
           "default": "easy"
         }
       ]
@@ -31,7 +63,7 @@
       "name": "Path Wiggle",
       "category": "Motion",
       "family": "Shape Motion",
-      "description": "Adds an owned native Wiggle Paths operator to one path group. Motion starts at the Apply playhead.",
+      "description": "Adds an owned native Wiggle Paths operator to one path group. Motion starts at the Apply playhead. Numeric parameters are available as owned sliders in AE Effect Controls after Apply.",
       "parameters": [
         {
           "key": "amount",
@@ -67,7 +99,7 @@
       "name": "Glow",
       "category": "FX",
       "family": "Shape FX",
-      "description": "Adds one owned native Glow effect without changing existing effects or shape artwork.",
+      "description": "Adds one owned native Glow effect without changing existing effects or shape artwork. Numeric parameters are available as owned sliders in AE Effect Controls after Apply.",
       "parameters": [
         {
           "key": "intensity",
@@ -103,7 +135,7 @@
       "name": "Blur Pulse",
       "category": "FX",
       "family": "Shape FX",
-      "description": "Adds a finite Gaussian blur pulse from the Apply playhead. Returns to zero at the end and preserves artwork.",
+      "description": "Adds a finite Gaussian blur pulse from the Apply playhead. Returns to zero at the end and preserves artwork. Numeric parameters are available as owned sliders in AE Effect Controls after Apply.",
       "parameters": [
         {
           "key": "amount",
@@ -127,8 +159,121 @@
           "key": "easing",
           "label": "Easing",
           "type": "select",
-          "options": ["linear", "ease-in", "ease-out", "easy"],
+          "options": [
+            "linear",
+            "ease-in",
+            "ease-out",
+            "easy"
+          ],
           "default": "easy"
+        }
+      ]
+    },
+    {
+      "id": "gaussian-blur",
+      "name": "Gaussian Blur",
+      "category": "FX",
+      "family": "Shape FX",
+      "description": "Adds an owned native Gaussian Blur with a keyframeable AE Amount slider. Existing Blur effects stay intact.",
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Blur · pixels",
+          "type": "number",
+          "min": 0,
+          "max": 500,
+          "step": 1,
+          "default": 20
+        }
+      ]
+    },
+    {
+      "id": "drop-shadow",
+      "name": "Drop Shadow",
+      "category": "FX",
+      "family": "Shape FX",
+      "description": "Adds an owned native black Drop Shadow with AE Opacity, Direction, Distance and Softness sliders. Existing shadows stay intact.",
+      "parameters": [
+        {
+          "key": "opacity",
+          "label": "Opacity · %",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50
+        },
+        {
+          "key": "direction",
+          "label": "Direction · degrees",
+          "type": "number",
+          "min": -36000,
+          "max": 36000,
+          "step": 1,
+          "default": 135
+        },
+        {
+          "key": "distance",
+          "label": "Distance · pixels",
+          "type": "number",
+          "min": 0,
+          "max": 1000,
+          "step": 1,
+          "default": 10
+        },
+        {
+          "key": "softness",
+          "label": "Softness · pixels",
+          "type": "number",
+          "min": 0,
+          "max": 500,
+          "step": 1,
+          "default": 10
+        }
+      ]
+    },
+    {
+      "id": "turbulent-displace",
+      "name": "Turbulent Displace",
+      "category": "FX",
+      "family": "Shape FX",
+      "description": "Adds owned native distortion with keyframeable Amount, Size, Complexity and Evolution sliders in AE. No extra layers or automatic loop.",
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount · pixels",
+          "type": "number",
+          "min": 0,
+          "max": 500,
+          "step": 1,
+          "default": 25
+        },
+        {
+          "key": "size",
+          "label": "Size · pixels",
+          "type": "number",
+          "min": 2,
+          "max": 1000,
+          "step": 1,
+          "default": 50
+        },
+        {
+          "key": "complexity",
+          "label": "Complexity",
+          "type": "number",
+          "min": 1,
+          "max": 10,
+          "step": 0.1,
+          "default": 2
+        },
+        {
+          "key": "evolution",
+          "label": "Evolution · degrees",
+          "type": "number",
+          "min": -36000,
+          "max": 36000,
+          "step": 1,
+          "default": 0
         }
       ]
     }

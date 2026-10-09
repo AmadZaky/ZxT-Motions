@@ -1,48 +1,13 @@
-const assert = require("node:assert/strict"),
-  fs = require("node:fs"),
-  cp = require("node:child_process");
-const baseline = "377f6e59b6c331aadd9b1a6d307d573ab019929b";
-for (const f of [
-  "shape-presets.json",
-  "js/shape-presets-data.js",
-  "js/visual-preview.js",
-  "tools/build-shape.py"
-])
-  assert.equal(
-    fs.readFileSync(f, "utf8"),
-    cp.execFileSync("git", ["show", baseline + ":" + f], { encoding: "utf8" }),
-    "frozen " + f
-  );
-// Task4 has verified Shape lifecycle/timing/rollback defects. All other host
-// functions remain byte-identical; generated parity is checked separately.
-const acorn = require('acorn');
-function functions(source) {
- const out=new Map();const tree=acorn.parse(source,{ecmaVersion:3,allowReserved:true});
- function walk(n){if(!n||typeof n!=='object')return;if(n.type==='FunctionDeclaration')out.set(n.id.name,source.slice(n.start,n.end));for(const v of Object.values(n))if(Array.isArray(v))v.forEach(walk);else if(v&&typeof v==='object')walk(v);}
- walk(tree);return out;
-}
-const before=functions(cp.execFileSync('git',['show',baseline+':jsx/shape.jsx'],{encoding:'utf8'})),after=functions(fs.readFileSync('jsx/shape.jsx','utf8'));
-for(const [name,body] of before) if(!['run','applyOne'].includes(name))assert.equal(after.get(name),body,'frozen Shape function '+name);
+/* Media is retired from the panel; its RC1 host remains available for saved projects. */
+const assert=require('node:assert/strict'),fs=require('node:fs'),cp=require('node:child_process');
+const baseline='7562f16f3a950cd8dfb797021e1b10f4a914c697';
+for(const f of ['media-presets.json','js/media-presets-data.js','js/media-library.js','js/media-preview.js','src/media-host.js','jsx/media.jsx','tools/build-media.py','tools/build-shape.py'])
+ assert.equal(fs.readFileSync(f,'utf8'),cp.execFileSync('git',['show',baseline+':'+f],{encoding:'utf8'}),'compatibility boundary '+f);
+assert(!fs.readFileSync('src/media-host.js','utf8').includes('ADBE Transform Group'));
 assert(fs.readFileSync('jsx/shape.jsx','utf8').includes(fs.readFileSync('src/shape-host.js','utf8')),'generated Shape parity');
-const registry = require("../media-presets.json");
-assert.deepEqual(
-  JSON.parse(
-    fs
-      .readFileSync("js/media-presets-data.js", "utf8")
-      .match(/window.ZXT_MEDIA_PRESETS=(.*);/)[1]
-  ),
-  registry
-);
-assert.deepEqual(
-  registry.presets.map((p) => p.id),
-  ["slide-up", "pop-in", "blur-reveal", "rgb-split"]
-);
-assert(
-  !fs
-    .readFileSync("src/media-host.js", "utf8")
-    .includes("ADBE Transform Group"),
-  "never access native Transform"
-);
-console.log(
-  "PASS completed Shape byte boundaries, four Media pilots, generated parity and independent effect Transform"
-);
+const registry=require('../shape-presets.json');
+assert.deepEqual(JSON.parse(fs.readFileSync('js/shape-presets-data.js','utf8').match(/window.ZXT_SHAPE_PRESETS=(.*);/)[1]),registry);
+const old=JSON.parse(cp.execFileSync('git',['show',baseline+':shape-presets.json'],{encoding:'utf8'}));
+for(const p of old.presets){const next=registry.presets.find(x=>x.id===p.id);assert(next);assert.equal(next.name,p.name);assert.equal(next.family,p.family);assert.equal(next.category,p.category);for(const parameter of p.parameters)assert.deepEqual(next.parameters.find(x=>x.key===parameter.key),parameter,'existing parameter contract');}
+assert.deepEqual(registry.presets.map(p=>p.id),['trim-in','path-wiggle','glow','blur-pulse','gaussian-blur','drop-shadow','turbulent-displace']);
+console.log('PASS retired Media compatibility bytes, existing Shape IDs/parameters, approved seven-preset scope and generated parity');

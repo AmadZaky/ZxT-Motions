@@ -35,6 +35,12 @@ function environment(missing) {
   return { e, l, loads, bridge: window.MotionAstraBridge };
 }
 (async () => {
+  // A panel reload in a running AE session may retain the old RC1 module at the same public build.
+  const cached = environment("yu-text.jsx");
+  vm.runInContext(require("node:child_process").execFileSync("git", ["show", "7562f16f3a950cd8dfb797021e1b10f4a914c697:jsx/shape.jsx"], {encoding:"utf8"}), cached.e.context);
+  const upgraded = await cached.bridge.call({action:"shapeLibrary",operation:"apply",id:"gaussian-blur",params:{}}).catch(error=>({error:String(error)}));
+  assert.equal(upgraded.changed,1,"same-build RC1 Shape module must reload for AE controls/new FX: "+JSON.stringify(upgraded));
+  assert(cached.loads.includes("shape.jsx"));
   const t = environment("yu-text.jsx");
   let r = await t.bridge.call({
     action: "shapeLibrary",

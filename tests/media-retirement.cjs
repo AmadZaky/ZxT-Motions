@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const html=fs.readFileSync('index.html','utf8');
+assert(!html.includes('data-tab="Media"'),'retired Media tab must be absent');
+assert(!html.includes('id="media-inspector"'));assert(!html.includes('id="media-library"'));
+assert(!html.includes('src="js/media-'),'retired Media frontend must not load');
+let saved=JSON.stringify({favorites:['media:slide-up','media:rgb-split','shape:glow','core:counter'],recent:['media:pop-in','shape:glow']});
+const c={window:{MA_PRESETS:require('../presets.json'),YTMCore:{presets:[]},ZXT_SHAPE_PRESETS:require('../shape-presets.json')},localStorage:{getItem:()=>saved,setItem:(k,v)=>saved=v}};
+vm.runInNewContext(fs.readFileSync('js/collections.js','utf8'),c);const collections=c.window.ZxTCollections;
+collections.toggle('shape:gaussian-blur');collections.record('shape:drop-shadow');
+assert(JSON.parse(saved).favorites.includes('media:slide-up'));assert(JSON.parse(saved).favorites.includes('media:rgb-split'));assert(JSON.parse(saved).recent.includes('media:pop-in'));
+assert(!collections.isFavorite('media:slide-up'),'retired metadata is not exposed');
+console.log('PASS Media frontend removed; archived favorites/recent remain intact');
