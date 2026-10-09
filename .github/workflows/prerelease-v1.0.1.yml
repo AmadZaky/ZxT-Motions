@@ -1,0 +1,84 @@
+name: Publish ZxT-Motions v1.0.1-rc.1 Testing Prerelease
+on:
+  push:
+    branches: ['release/v1.0.1-rc.1']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: zxt-v1.0.1-rc.1
+  cancel-in-progress: false
+jobs:
+  testing-prerelease:
+    if: github.ref == 'refs/heads/release/v1.0.1-rc.1'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONUTF8: '1'
+      NODE_PATH: ${{ github.workspace }}/node_modules
+      CODEX_PRIMARY_RUNTIME_NODE_MODULES: ${{ github.workspace }}/node_modules
+      ZXT_VALIDATION_OUTPUT: ${{ github.workspace }}/docs/releases/v1.0.1-rc.1/ci-validation-results.json
+    steps:
+      - name: Preserve LF source bytes for frozen-boundary tests
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify numeric package and isolated prerelease contract
+        run: |
+          python tools/check-version.py
+          python tests/release-prerelease.py
+      - name: Install test runtimes
+        run: |
+          npm install --no-save --package-lock=false acorn@8.15.0 playwright@1.56.1
+          npx playwright install chromium
+      - name: Verify complete active Library regression suite
+        run: python tools/validate-task4.py
+      - name: Build and verify unchanged Windows installer
+        shell: powershell
+        run: |
+          ./tests/installers-windows.ps1
+          ./tools/build-windows-installer.ps1
+          powershell.exe -NoProfile -STA -File ./tests/installer-ui-windows.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          powershell.exe -NoProfile -STA -File ./tests/installer-window-windows.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./tests/online-installer-windows.ps1
+          ./tests/universal-installer-windows.ps1
+          ./tests/live-catalog-windows.ps1
+          powershell.exe -NoProfile -STA -File ./tests/universal-window-windows.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Package testing prerelease
+        run: python tools/package-release.py --output "dist/ZxT-Motions_v1.0.1-rc.1.zip" --windows-launcher "dist/Install ZxT-Motions.exe"
+      - name: Publish testing prerelease without changing latest stable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          # Never replace an existing RC tag, asset or release.
+          existing_tag="$(git ls-remote --tags origin refs/tags/v1.0.1-rc.1)"
+          if [ -n "$existing_tag" ]; then
+            echo "RC tag already exists; refusing overwrite."
+            exit 1
+          fi
+          if gh release view v1.0.1-rc.1 >/dev/null 2>&1; then
+            echo "RC already exists; refusing overwrite."
+            exit 1
+          fi
+          # Create the immutable source binding first; a racing tag creation fails.
+          gh api --method POST "repos/$GH_REPO/git/refs" -f ref=refs/tags/v1.0.1-rc.1 -f sha="$SOURCE_SHA" >/dev/null
+          actual="$(gh api "repos/$GH_REPO/git/ref/tags/v1.0.1-rc.1" --jq .object.sha)"
+          test "$actual" = "$SOURCE_SHA"
+          gh release create v1.0.1-rc.1 "dist/ZxT-Motions_v1.0.1-rc.1.zip" "dist/Install ZxT-Motions.exe" \
+            --target "$SOURCE_SHA" --title "ZxT-Motions v1.0.1-rc.1 — Testing Prerelease" \
+            --verify-tag --prerelease --latest=false --notes-file RELEASE_NOTES.md
+      - name: Save CI verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v1.0.1-rc.1-validation
+          path: docs/releases/v1.0.1-rc.1/ci-validation-results.json
+          if-no-files-found: ignore

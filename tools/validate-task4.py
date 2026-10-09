@@ -11,5 +11,5 @@ for command in commands:
  results.append(dict(command=command,exitCode=p.returncode,output=p.stdout))
  print(('PASS ' if p.returncode==0 else 'FAIL ')+command,flush=True)
  if p.returncode: print(p.stdout[-2500:],flush=True)
- (root/'docs/task4/validation-results.json').write_text(json.dumps(dict(nativeAEValidated=False,environment={k:os.environ.get(k) for k in ['NODE_PATH','CODEX_PRIMARY_RUNTIME_NODE_MODULES','CHROMIUM_PATH']},results=results,summary=dict(scripts=len(results),passed=sum(r['exitCode']==0 for r in results))),indent=2)+'\n')
+ Path(os.environ.get('ZXT_VALIDATION_OUTPUT',str(root/'docs/task4/validation-results.json'))).write_text(json.dumps(dict(nativeAEValidated=False,environment={k:os.environ.get(k) for k in ['NODE_PATH','CODEX_PRIMARY_RUNTIME_NODE_MODULES','CHROMIUM_PATH']},results=results,summary=dict(scripts=len(results),passed=sum(r['exitCode']==0 for r in results))),indent=2)+'\n')
 raise SystemExit(any(r['exitCode'] for r in results))

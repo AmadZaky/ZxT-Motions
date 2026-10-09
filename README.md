@@ -1,4 +1,4 @@
-# ZxT-Motions v1.0.0 — Official Release
+# ZxT-Motions v1.0.1-rc.1 — Testing Prerelease
 
 
 Formerly MotionAstra. Use the new installer after the repository rename.
@@ -6,6 +6,8 @@ Formerly MotionAstra. Use the new installer after the repository rename.
 **Platform: Windows only. macOS support is withdrawn for this build.**
 
 Offline CEP extension for Adobe After Effects 2025. Studio UI with dark/light themes and five accent colors, local CSInterface + Lucide, Text Animate (6 highlighted Text Tools FX + 120 animation presets), 8 procedural SolidGen presets and Quick Tools with integrated FX settings.
+
+**Testing prerelease:** native AE2025 validation remains outstanding. In the universal installer, explicitly select v1.0.1-rc.1 and acknowledge the other-version warning; the recommended stable version remains unchanged.
 
 Download only **Install ZxT-Motions.exe** from the release assets. Close AE, open it and consent to downloading and installing ZxT-Motions. Setup fetches its matching release from GitHub over HTTPS, verifies the digest and installs the panel. Confirm replacement of older versions, restart AE, then open Window → Extensions → ZxT-Motions. The GitHub source archive is for development; use the release asset for the ready-to-install package. The package is unsigned source; no Adobe installation or signing certificate is bundled. Internet is required by the EXE installer. The installed panel works offline. The ZIP remains an advanced/manual fallback.
 
@@ -41,7 +43,7 @@ Media accepts unlocked visual footage (stills/video/sequences/compatible importe
 
 Native Layer Transform remains user layout; separately owned Transform effects implement Media motion. User effects/operators, unrelated animation and notes remain intact. Apply supports eligible selected targets; Load/Update require one loaded target. Repeat Apply reuses its owned instance and original start; unsafe edits/ownership/revision mismatch fail safely. Shape/Media Favorites and Recent use the existing local database, with unavailable IDs retained without displaying them. Browsing filters remain scoped; drafts are session-only.
 
-Previews are illustrative canvases, not native AE pixel renders. Slide distance uses layer-space pixels and follows native scale/rotation; effect stack order, raster sampling/clipping, alpha and Collapse Transformations need native inspection. No vector-quality guarantee or native quality/layout flag changes. Native AE2025 APIs, rendering, Undo/Redo and project save/reopen are **not yet tested**. This source update is being prepared for validation; public version and release remain unchanged. See [final native checklist](docs/task4/AE2025_CHECKLIST.md) and [Task4 report](docs/task4/COMPLETION_REPORT.md).
+Previews are illustrative canvases, not native AE pixel renders. Slide distance uses layer-space pixels and follows native scale/rotation; effect stack order, raster sampling/clipping, alpha and Collapse Transformations need native inspection. No vector-quality guarantee or native quality/layout flag changes. Native AE2025 APIs, rendering, Undo/Redo and project save/reopen are **not yet tested**. This source update is being prepared for validation; This1.0.1-rc.1 testing package retains v1.0.0 as the latest stable release. See [final native checklist](docs/task4/AE2025_CHECKLIST.md) and [Task4 report](docs/task4/COMPLETION_REPORT.md).
 
 ## Quick Tools and FX settings
 

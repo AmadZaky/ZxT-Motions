@@ -663,5 +663,5 @@ function run(a, shared) {
 return { run: run, mediaVersion: 1 };
 
 }());
-ZxTMedia.build="1.0.0";
+ZxTMedia.build="1.0.1";
 if(typeof $!=="undefined"&&$.global){$.global.MotionAstraModules=$.global.MotionAstraModules||{};$.global.MotionAstraModules.mediaLibrary=ZxTMedia;}

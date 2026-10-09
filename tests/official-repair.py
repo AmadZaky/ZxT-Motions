@@ -6,6 +6,8 @@ with tempfile.TemporaryDirectory() as temp:
  p=Path(temp)
  for name in ['VERSION','CSXS/manifest.xml','presets.json','js/bridge.js','jsx/hostscript.jsx','tools/check-version.py']:
   target=p/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(root/name,target)
+  # This historical fixture must remain at1.0.0 after the live package bumps.
+  if name != "tools/check-version.py": target.write_text(target.read_text().replace((root/"VERSION").read_text().strip(),"1.0.0"))
  def git(*args):return subprocess.check_output(['git',*args],cwd=p,stderr=subprocess.DEVNULL,text=True)
  git('init');git('config','user.name','Test');git('config','user.email','test@example.invalid');git('add','.');git('commit','-m','v1.0.0 baseline')
  git('commit','--allow-empty','-m','[official-repair] approved v1.0.0 correction')

@@ -1,18 +1,15 @@
-# ZxT-Motions v1.0.0 — Official Release
+# ZxT-Motions v1.0.1-rc.1 — Testing Prerelease
 
-Windows-only Adobe After Effects 2025 CEP extension. This same-version repair simplifies Quick Tools and layer creation.
+For Windows Adobe After Effects2025 testing. Package/CEP version1.0.1; prerelease tagv1.0.1-rc.1. Native AE2025 validation is outstanding; this is not a stable release and does not replace v1.0.0 as latest.
 
-- Separate All / Favorites / Recent filters in Text, SolidGen and Create, with compatible saved collections.
-- Cleaner Inspector labels, with actual parameter controls and AE keyframes badges preserved.
-- Text Appearance and Keyframe Easing removed from Quick Tools; the other existing tools remain.
-- Copy / Paste Motion and Layer Inspector removed from the panel. Preset customization and selection safety remain available.
-- Independent collapsible Text, Shape and Solid Color creation settings, with visible Create buttons and retained draft values.
-- Select buttons now have equal left/right card spacing across narrow and wide panels.
-- Preserves Studio layouts, all 134 presets, themes/accents and existing Apply/Update engines.
-- Universal Windows graphical installer discovers releases from GitHub, defaults to the latest Official, shows only version/features, and downloads the selected package after consent and other-version warning acknowledgment, verifies hashes, detects old versions and retains confirmation, backups and rollback.
+- Library now includes Text | Shape | Media | SolidGen within existing Studio Library | Motion | Create.
+- Four Shape pilots: Trim Path In, Path Wiggle, Glow and Blur Pulse; native Shape targets only, path-group/stroke safety.
+- Four Media pilots: Slide Up, Pop In, Blur Reveal, RGB Split · Channel Blur Fringe (chromatic blur, not directional RGB displacement).
+- Media motion uses separately owned Transform effects; native layer layout and user-created effects stay intact.
+- Scoped Favorites/Recent, filters, search and responsive Inspector; unavailable stored preset IDs survive missing metadata.
+- Safe Apply/Load/Update/repeat with ownership/revision/selection checks; improved Shape draft binding, timing guard and recovery stop.
+- Preserves existing Text/YUGraphic/Text Tools FX, SolidGen, Create, tools/themes and installer behavior. No additional feature or preset expansion.
 
-Download **Install ZxT-Motions.exe**, close AE, run setup, review the destination and consent to installation. Internet is required for setup; the installed panel works offline. The ZIP is available for offline/manual installation. Destination: `%APPDATA%\Adobe\CEP\extensions\MotionAstra-FX`.
+Testing requirements: actual native AE2025 effect contracts, visuals/alpha, native Transform preservation, effect order/quality, Undo/Redo, save/reopen and narrow/wide CEP docking remain untested. Follow docs/task4/AE2025_CHECKLIST.md on a duplicate test project. Automated/browser tests do not establish native success.
 
-The installer and extension are unsigned. Automated browser/host-model and Windows CI checks do not establish native rendering, docking, spatial/roving fidelity or Undo/Redo in AE 2025. Direct native AE validation remains outstanding; test on a duplicate project first.
-
-No Copy / Paste Motion tools, Smart Workflow, Motion Stack, mirroring or stagger are included.
+Select v1.0.1-rc.1 explicitly in the universal Windows installer (non-recommended version); review the warning and installation consent. The ZIP is provided for offline/manual installation. No Mac support. Installer and extension are unsigned.

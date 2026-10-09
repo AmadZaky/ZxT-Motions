@@ -711,5 +711,5 @@ return {run: run, clear: clear, copyMotion: copyMotion, pasteMotion: pasteMotion
 
 }());
 
-MotionAstraYU.build='1.0.0';
+MotionAstraYU.build='1.0.1';
 if(typeof $!=="undefined"&&$.global){$.global.MotionAstraYU=MotionAstraYU;$.global.MotionAstraModules=$.global.MotionAstraModules||{};$.global.MotionAstraModules.yuText=MotionAstraYU;}

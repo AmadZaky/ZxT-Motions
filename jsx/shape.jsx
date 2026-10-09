@@ -582,5 +582,5 @@ function run(a, shared) {
 return { run: run, shapeVersion: 1 };
 
 }());
-ZxTShape.build="1.0.0";
+ZxTShape.build="1.0.1";
 if(typeof $!=="undefined"&&$.global){$.global.MotionAstraModules=$.global.MotionAstraModules||{};$.global.MotionAstraModules.shapeLibrary=ZxTShape;}
