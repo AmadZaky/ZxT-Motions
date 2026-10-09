@@ -3353,8 +3353,8 @@ var MotionAstra = (function () {
           throw loadError;
         }
       } else if (
-        (a.action === "fxTools" || a.action === "yuText" || a.action === "shapeLibrary") &&
-        a.operation === "load"
+        (a.action === "fxTools" || a.action === "yuText" || a.action === "shapeLibrary" || a.action === "mediaLibrary") &&
+        (a.operation === "load" || (a.action === "mediaLibrary" && a.operation === "inspect"))
       ) {
         result = moduleHandler(a.action).run(a, {
           parse: parse,
@@ -3362,6 +3362,7 @@ var MotionAstra = (function () {
         });
       } else {
         var routes = {
+          mediaLibrary: function () { return moduleHandler("mediaLibrary").run(a,{parse:parse,encode:encode}); },
           shapeLibrary: function () {
             return moduleHandler("shapeLibrary").run(a, {parse: parse, encode: encode});
           },
@@ -3400,7 +3401,8 @@ var MotionAstra = (function () {
           fail("Unknown MotionAstra action: " + a.action);
         var undoLabel = "ZxT Shape · Apply";
         if (a.operation === "update") undoLabel = "ZxT Shape · Update";
-        app.beginUndoGroup(a.action === "shapeLibrary" ? undoLabel : a.action === "pasteMotion" ? "Paste ZxT Motion" : "MotionAstra · " + a.action);
+        if(a.action === "mediaLibrary") undoLabel="ZxT Media · " + (a.operation === "update" ? "Update" : "Apply");
+        app.beginUndoGroup((a.action === "shapeLibrary" || a.action === "mediaLibrary") ? undoLabel : a.action === "pasteMotion" ? "Paste ZxT Motion" : "MotionAstra · " + a.action);
         undo = true;
         result = routes[a.action]();
         result.ok = true;
@@ -3424,7 +3426,7 @@ var MotionAstra = (function () {
       try {
         app.endUndoGroup();
       } catch (undoError) {
-        if (a.action === "pasteMotion" || a.action === "shapeLibrary") {
+        if (a.action === "pasteMotion" || a.action === "shapeLibrary" || a.action === "mediaLibrary") {
           // Preserve mutation uncertainty in a handled reply, so the panel's
           // recovery guard cannot lose it through a rejected bridge response.
           result = {
@@ -3456,6 +3458,6 @@ var MotionAstra = (function () {
     throw Error(
       "MotionAstra JSON transport self-check failed. Restart AE and install the full package."
     );
-  return { dispatch: dispatch, version: "1.0.0", build: BUILD, transformMotionVersion: 2, shapeLibraryVersion: 1 };
+  return { dispatch: dispatch, version: "1.0.0", build: BUILD, transformMotionVersion: 2, shapeLibraryVersion: 1, mediaLibraryVersion: 1 };
 })();
 if (typeof $ !== "undefined" && $.global) $.global.MotionAstra = MotionAstra;

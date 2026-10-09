@@ -71,10 +71,10 @@ assert.deepEqual(
   ),
   require("../shape-presets.json"),
 );
-assert(!fs.existsSync("jsx/media.jsx"));
-assert(!fs.existsSync("media-presets.json"));
+assert(fs.existsSync("jsx/media.jsx"));
+assert(fs.existsSync("media-presets.json"));
 console.log(
   "PASS: " +
     preserved +
-    " unchanged host functions; frozen Text/SolidGen, tools, themes, versions, installer; generated Shape metadata parity; no Media engine.",
+    " unchanged host functions; frozen Text/SolidGen, tools, themes, versions, installer; generated Shape metadata parity; authorized additive Media engine.",
 );

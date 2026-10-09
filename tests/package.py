@@ -6,7 +6,7 @@ with tempfile.TemporaryDirectory() as t:
  subprocess.run([sys.executable,str(root/'tools/package-release.py'),'--output',str(out)],check=True)
  with zipfile.ZipFile(out) as z:
   names=z.namelist()
-  for name in ['Install MotionAstra.cmd','Install MotionAstra.ps1','INSTALLATION_GUIDE.md','MotionAstra-FX/CSXS/manifest.xml','MotionAstra-FX/jsx/hostscript.jsx','MotionAstra-FX/jsx/shape.jsx','MotionAstra-FX/shape-presets.json','MotionAstra-FX/js/shape-presets-data.js','MotionAstra-FX/js/visual-library.js','MotionAstra-FX/js/visual-preview.js','Installer/WindowsUI.ps1','Installer/Window.xaml','Installer/Backend.ps1','Installer/Download.ps1']:
+  for name in ['Install MotionAstra.cmd','Install MotionAstra.ps1','INSTALLATION_GUIDE.md','MotionAstra-FX/CSXS/manifest.xml','MotionAstra-FX/jsx/hostscript.jsx','MotionAstra-FX/jsx/media.jsx','MotionAstra-FX/media-presets.json','MotionAstra-FX/js/media-presets-data.js','MotionAstra-FX/js/media-library.js','MotionAstra-FX/js/media-preview.js','MotionAstra-FX/jsx/shape.jsx','MotionAstra-FX/shape-presets.json','MotionAstra-FX/js/shape-presets-data.js','MotionAstra-FX/js/visual-library.js','MotionAstra-FX/js/visual-preview.js','Installer/WindowsUI.ps1','Installer/Window.xaml','Installer/Backend.ps1','Installer/Download.ps1']:
    assert name in names,name
   assert not any(n.endswith('.command') for n in names), 'Windows-only package must not ship macOS launchers'
   assert not any(n.endswith(('fx-tools.js','fx-tools-data.js','fx-tools.jsx','fx-tools.json')) for n in names)

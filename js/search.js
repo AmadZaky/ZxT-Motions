@@ -59,6 +59,7 @@ window.MotionAstraSearch = (() => {
       }),
     );
     if (window.ZXT_SHAPE_PRESETS) window.ZXT_SHAPE_PRESETS.presets.forEach(p => items.push({name:p.name, group:"Shape · " + p.family, keywords:p.description, open(){api.tab("Shape");window.ShapeLibrary.openById(p.id);}}));
+    if (window.ZXT_MEDIA_PRESETS) window.ZXT_MEDIA_PRESETS.presets.forEach(p => items.push({name:p.name, group:"Media · " + p.family, keywords:p.description, open(){api.tab("Media");window.MediaLibrary.openById(p.id);}}));
     [
       ["tools", "Tools", "Quick Tools"],
       ["create", "Create", "Create"],

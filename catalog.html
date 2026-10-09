@@ -298,6 +298,27 @@ nav,#quick{background:var(--panel)}
  #shape-inspector .inspector-head button{min-height:24px;padding:3px 6px}
  #shape-inspector .inspector-actions{padding:4px 8px}
 }
+
+/* Media is an additive Library adapter; existing Text/SolidGen selectors stay intact. */
+.media-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:10px;margin-top:12px}
+#media-library>details{margin-bottom:12px;background:transparent}
+#media-search{width:100%;box-sizing:border-box;font-size:11px}
+#media-inspector{flex:1;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;background:var(--panel);border-left:1px solid var(--line)}
+#media-title{font-size:16px;margin:5px 0}#media-preview{display:block;width:100%;max-width:220px;aspect-ratio:1;margin:auto;border:1px solid var(--line);border-radius:7px}
+#media-description{font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+#media-inspector .inspector-actions{grid-template-columns:1fr}#media-parameters .parameter{min-width:0}#media-parameters label{overflow-wrap:anywhere}
+@media(min-width:760px){#workspace>#media-inspector{flex:0 0 300px;width:300px}}
+@media(max-width:759px){#workspace>#media-inspector{width:100%;flex:1}}
+@media(max-height:420px){#media-inspector{grid-template-rows:auto minmax(0,1fr) auto}.inspector-head h2#media-title{font-size:13px;margin:2px 0}}
+#media-guidance{font-size:10px;line-height:1.4;color:var(--muted);overflow-wrap:anywhere}
+#media-inspector .inspector-scroll{overflow:auto;min-height:0}
+@media(max-height:420px){
+ #media-inspector .inspector-head{padding:4px 8px}
+ #media-inspector .inspector-head .eyebrow{display:none}
+ #media-inspector .inspector-head h2{margin:0}
+ #media-inspector .inspector-head button{min-height:24px;padding:3px 6px}
+ #media-inspector .inspector-actions{padding:4px 8px}
+}
 </style>
   </head>
   <body class="catalog">
@@ -347,7 +368,7 @@ nav,#quick{background:var(--panel)}
         <button data-tab="Create" data-workspace="Create">Create</button>
       </div>
       <div id="library-navigation" class="studio-subnav" aria-label="Library type">
-        <button data-tab="YU">Text</button><button data-tab="Shape">Shape</button><button type="button" disabled title="Media is reserved for a future approved task" aria-label="Media · not available">Media</button><button data-tab="Background">SolidGen</button>
+        <button data-tab="YU">Text</button><button data-tab="Shape">Shape</button><button data-tab="Media">Media</button><button data-tab="Background">SolidGen</button>
       </div>
       <div id="motion-navigation" class="studio-subnav" aria-label="Motion tools" hidden>
         <button data-tab="Tools">Quick Tools</button><button data-tab="Curve">Curve</button>
@@ -372,6 +393,14 @@ nav,#quick{background:var(--panel)}
           <p id="shape-count" class="hint"></p><p id="shape-empty" class="empty" hidden></p>
           <details id="shape-family-motion" open><summary>Shape Motion</summary><div id="shape-cards-motion" class="shape-cards"></div></details>
           <details id="shape-family-fx" open><summary>Shape FX</summary><div id="shape-cards-fx" class="shape-cards"></div></details>
+        </section>
+        <section id="media-library" hidden aria-label="Media Library">
+          <div class="collection-filters" data-collection-scope="Media" role="group" aria-label="Media collection"><button type="button" data-collection="all" aria-pressed="true">All</button><button type="button" data-collection="favorites" aria-pressed="false">Favorites</button><button type="button" data-collection="recent" aria-pressed="false">Recent</button></div>
+          <div class="yu-filters"><label for="media-category">Animation category</label><select id="media-category"><option value="all">All</option><option value="Motion">Motion</option><option value="FX">FX</option></select></div>
+          <input id="media-search" type="search" placeholder="Search Media presets" aria-label="Search Media presets" />
+          <p id="media-count" class="hint"></p><p id="media-empty" class="empty" hidden></p>
+          <details id="media-family-motion" open><summary>Media Motion</summary><div id="media-cards-motion" class="media-cards"></div></details>
+          <details id="media-family-fx" open><summary>Media FX</summary><div id="media-cards-fx" class="media-cards"></div></details>
         </section>
 
         <section id="create" hidden aria-label="Create layers">
@@ -1017,6 +1046,11 @@ ZxT-Motions</textarea
         <div class="inspector-head"><div><span id="shape-mode" class="eyebrow">CUSTOMIZE SHAPE</span><h2 id="shape-title"></h2></div><button id="shape-back">← Library</button></div>
         <div class="inspector-scroll"><p id="shape-guidance" class="target-guidance" role="status"></p><canvas id="shape-preview" width="240" height="240" aria-label="Illustrative Shape preview"></canvas><p class="hint">Illustrative preview · rendering is performed in AE.</p><button id="shape-replay">Replay preview</button><p id="shape-description"></p><div id="shape-parameters"></div><button id="shape-load" data-host>Load settings</button></div>
         <div class="inspector-actions"><button id="shape-apply" class="primary" data-host>Apply</button><button id="shape-update" class="primary" data-host hidden>Update</button></div>
+      </aside>
+      <aside id="media-inspector" hidden aria-labelledby="media-title">
+        <div class="inspector-head"><div><span id="media-mode" class="eyebrow">CUSTOMIZE MEDIA</span><h2 id="media-title"></h2></div><button id="media-back">← Library</button></div>
+        <div class="inspector-scroll"><p id="media-guidance" class="target-guidance" role="status"></p><canvas id="media-preview" width="240" height="240" aria-label="Illustrative Media preview"></canvas><p class="hint">Illustrative preview · rendering is performed in AE.</p><button id="media-replay">Replay preview</button><p id="media-description"></p><div id="media-parameters"></div><button id="media-load" data-host>Load settings</button></div>
+        <div class="inspector-actions"><button id="media-apply" class="primary" data-host>Apply</button><button id="media-update" class="primary" data-host hidden>Update</button></div>
       </aside>
       <aside id="inspector" hidden aria-labelledby="fx-title">
         <div class="inspector-head">
@@ -7322,7 +7356,7 @@ document.addEventListener('visibilitychange',run);return {attach,play,clear,rend
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2||host.shapeLibraryVersion!==1){' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2||host.shapeLibraryVersion!==1||host.mediaLibraryVersion!==1){' +
         "var data=File(" +
         JSON.stringify(path + "/jsx/presets-data.jsx") +
         ");" +
@@ -7336,7 +7370,7 @@ document.addEventListener('visibilitychange',run);return {attach,play,clear,rend
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2||host.shapeLibraryVersion!==1)' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2||host.shapeLibraryVersion!==1||host.mediaLibraryVersion!==1)' +
         'throw Error("Host initialization failed or an old host is still installed.");}' +
         "var output=host.dispatch(" +
         JSON.stringify(encodeURIComponent('{"action":"status"}')) +
@@ -7347,6 +7381,7 @@ document.addEventListener('visibilitychange',run);return {attach,play,clear,rend
 
   async function ensureModule(payload) {
     const modules = {
+      mediaLibrary: { file: "media.jsx", label: "Media Library" },
       shapeLibrary: { file: "shape.jsx", label: "Shape Library" },
       yuText: { file: "yu-text.jsx", label: "YU Txt Motion" },
       fxTools: { file: "fx-tools.jsx", label: "FXTools" }
@@ -7362,7 +7397,7 @@ document.addEventListener('visibilitychange',run);return {attach,play,clear,rend
         "];" +
         "if(!module||module.build!==" +
         expected +
-        '||typeof module.run!=="function"' + (moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + '){' +
+        '||typeof module.run!=="function"' + (moduleKey === "mediaLibrary" ? '||module.mediaVersion!==1' : moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + '){' +
         "var file=File(" +
         JSON.stringify(extensionPath + "/jsx/" + module.file) +
         ");" +
@@ -7379,7 +7414,7 @@ document.addEventListener('visibilitychange',run);return {attach,play,clear,rend
         "];" +
         "if(!module||module.build!==" +
         expected +
-        '||typeof module.run!=="function"' + (moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + ')throw Error(' +
+        '||typeof module.run!=="function"' + (moduleKey === "mediaLibrary" ? '||module.mediaVersion!==1' : moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + ')throw Error(' +
         JSON.stringify(
           module.label + " failed to register. Reinstall the complete package."
         ) +
@@ -8488,6 +8523,7 @@ window.MotionAstraSearch = (() => {
       }),
     );
     if (window.ZXT_SHAPE_PRESETS) window.ZXT_SHAPE_PRESETS.presets.forEach(p => items.push({name:p.name, group:"Shape · " + p.family, keywords:p.description, open(){api.tab("Shape");window.ShapeLibrary.openById(p.id);}}));
+    if (window.ZXT_MEDIA_PRESETS) window.ZXT_MEDIA_PRESETS.presets.forEach(p => items.push({name:p.name, group:"Media · " + p.family, keywords:p.description, open(){api.tab("Media");window.MediaLibrary.openById(p.id);}}));
     [
       ["tools", "Tools", "Quick Tools"],
       ["create", "Create", "Create"],
@@ -8604,6 +8640,11 @@ window.ZxTSelection = (() => {
     <script>
 /* Generated by tools/build-shape.py */
 window.ZXT_SHAPE_PRESETS={"schema":1,"presets":[{"id":"trim-in","name":"Trim Path In","category":"Motion","family":"Shape Motion","description":"Reveals a stroked path with an owned Trim Paths operator. Select a path group in AE when several groups exist. Filled artwork remains visible.","parameters":[{"key":"duration","label":"Duration \u00b7 seconds","type":"number","min":0.05,"max":120,"step":0.05,"default":1},{"key":"easing","label":"Easing","type":"select","options":["linear","ease-in","ease-out","easy"],"default":"easy"}]},{"id":"path-wiggle","name":"Path Wiggle","category":"Motion","family":"Shape Motion","description":"Adds an owned native Wiggle Paths operator to one path group. Motion starts at the Apply playhead.","parameters":[{"key":"amount","label":"Amount \u00b7 pixels","type":"number","min":0,"max":500,"step":1,"default":10},{"key":"detail","label":"Detail","type":"number","min":0,"max":10,"step":0.1,"default":3},{"key":"speed","label":"Speed \u00b7 wiggles/sec","type":"number","min":0,"max":20,"step":0.1,"default":1}]},{"id":"glow","name":"Glow","category":"FX","family":"Shape FX","description":"Adds one owned native Glow effect without changing existing effects or shape artwork.","parameters":[{"key":"intensity","label":"Intensity","type":"number","min":0,"max":10,"step":0.1,"default":1},{"key":"radius","label":"Radius \u00b7 pixels","type":"number","min":0,"max":500,"step":1,"default":25},{"key":"threshold","label":"Threshold \u00b7 %","type":"number","min":0,"max":100,"step":1,"default":60}]},{"id":"blur-pulse","name":"Blur Pulse","category":"FX","family":"Shape FX","description":"Adds a finite Gaussian blur pulse from the Apply playhead. Returns to zero at the end and preserves artwork.","parameters":[{"key":"amount","label":"Peak blur \u00b7 pixels","type":"number","min":0,"max":500,"step":1,"default":20},{"key":"duration","label":"Duration \u00b7 seconds","type":"number","min":0.05,"max":120,"step":0.05,"default":1},{"key":"easing","label":"Easing","type":"select","options":["linear","ease-in","ease-out","easy"],"default":"easy"}]}]};
+
+</script>
+    <script>
+/* Generated by tools/build-media.py */
+window.ZXT_MEDIA_PRESETS={"schema":1,"presets":[{"id":"slide-up","name":"Slide Up","category":"Motion","family":"Media Motion","description":"Owned Transform Position offset in layer-space pixels. Native layout stays intact; visible distance follows native scale/rotation.","parameters":[{"key":"distance","label":"Distance \u00b7 layer pixels","type":"number","min":0,"max":10000,"step":1,"default":120},{"key":"duration","label":"Duration \u00b7 seconds","type":"number","min":0.05,"max":120,"step":0.05,"default":1},{"key":"easing","label":"Easing","type":"select","options":["linear","ease-in","ease-out","easy"],"default":"easy"}]},{"id":"pop-in","name":"Pop In","category":"Motion","family":"Media Motion","description":"Owned Transform uniform scale to 100%, optionally fading its effect Opacity. Native Scale/Opacity stay intact.","parameters":[{"key":"startScale","label":"Start Scale \u00b7 %","type":"number","min":0,"max":100,"step":1,"default":50},{"key":"duration","label":"Duration \u00b7 seconds","type":"number","min":0.05,"max":120,"step":0.05,"default":1},{"key":"easing","label":"Easing","type":"select","options":["linear","ease-in","ease-out","easy"],"default":"easy"},{"key":"fadeIn","label":"Fade In","type":"select","options":["off","on"],"default":"off"}]},{"id":"blur-reveal","name":"Blur Reveal","category":"FX","family":"Media FX","description":"Owned Gaussian Blur 2 from Amount to zero; existing user Blur effects stay intact.","parameters":[{"key":"amount","label":"Blur Amount \u00b7 pixels","type":"number","min":0,"max":500,"step":1,"default":20},{"key":"duration","label":"Duration \u00b7 seconds","type":"number","min":0.05,"max":120,"step":0.05,"default":1},{"key":"easing","label":"Easing","type":"select","options":["linear","ease-in","ease-out","easy"],"default":"easy"}]},{"id":"rgb-split","name":"RGB Split \u00b7 Channel Blur Fringe","category":"FX","family":"Media FX","description":"Safe alternative recipe: Channel Blur fringe (red Amount, blue half Amount, green/alpha zero). Chromatic blur, not geometric RGB displacement. Amount zero is neutral. Native alpha/rendering checks pending.","parameters":[{"key":"amount","label":"Amount \u00b7 blur pixels","type":"number","min":0,"max":100,"step":1,"default":10}]}]};
 
 </script>
     <script>
@@ -9040,6 +9081,485 @@ window.ShapeLibrary = (() => {
 
 </script>
     <script>
+/* Media-only illustrative previews. No dependency on the Text/SolidGen renderers. */
+window.MediaPreview = (() => {
+  const active = new Map();
+  let suspended = false;
+  function draw(canvas, id, progress = 1, params = {}) {
+    const ctx = canvas.getContext("2d"),
+      w = canvas.width,
+      h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle =
+      getComputedStyle(document.documentElement).getPropertyValue("--input") ||
+      "#18181a";
+    ctx.fillRect(0, 0, w, h);
+    const color =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--accent")
+        .trim() || "#ff963b";
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = w / 45;
+    // Stylized raster sample. This canvas is illustrative, never an AE render.
+    if (id === "slide-up")
+      ctx.translate(0, ((1 - progress) * (params.distance ?? 120) * w) / 480);
+    if (id === "pop-in") {
+      const v =
+        ((params.startScale ?? 50) +
+          (100 - (params.startScale ?? 50)) * progress) /
+        100;
+      ctx.scale(v, v);
+      if (params.fadeIn === "on") ctx.globalAlpha = progress;
+    }
+    if (id === "blur-reveal")
+      ctx.filter =
+        "blur(" + ((params.amount ?? 20) * (1 - progress) * w) / 480 + "px)";
+    const paint = () => {
+      ctx.fillRect(-w * 0.27, -h * 0.22, w * 0.54, h * 0.44);
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(-w * 0.12, -h * 0.08, w * 0.045, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.22, h * 0.17);
+      ctx.lineTo(0, -h * 0.05);
+      ctx.lineTo(w * 0.22, h * 0.17);
+      ctx.closePath();
+      ctx.fill();
+    };
+    paint();
+    if (id === "rgb-split" && (params.amount ?? 10) > 0) {
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = 0.35;
+      ctx.filter = "blur(" + ((params.amount ?? 10) * w) / 480 + "px)";
+      ctx.fillStyle = "#f05060";
+      ctx.strokeStyle = "#3080ff";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(-w * 0.27, -h * 0.22, w * 0.54, h * 0.44);
+    }
+    ctx.restore();
+  }
+  function stop(canvas) {
+    const frame = active.get(canvas);
+    if (frame) cancelAnimationFrame(frame);
+    active.delete(canvas);
+  }
+  function play(canvas, id, params = {}, once = false) {
+    stop(canvas);
+    if (suspended || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      draw(canvas, id, 1, params);
+      return;
+    }
+    const start = performance.now(),
+      duration = (params.duration || 1) * 1000;
+    function frame(now) {
+      if (suspended || !canvas.isConnected) {
+        stop(canvas);
+        return;
+      }
+      const t = (now - start) / duration;
+      draw(canvas, id, Math.min(1, once ? t : t % 1), params);
+      if (!once || t < 1) active.set(canvas, requestAnimationFrame(frame));
+      else active.delete(canvas);
+    }
+    active.set(canvas, requestAnimationFrame(frame));
+  }
+  return {
+    draw,
+    play,
+    stop,
+    suspend(on) {
+      suspended = on;
+      if (on) for (const canvas of [...active.keys()]) stop(canvas);
+    },
+    clear() {
+      for (const canvas of [...active.keys()]) stop(canvas);
+    }
+  };
+})();
+
+</script>
+    <script>
+/* Media adapter: independent metadata, forms and host route; shared Studio shell. */
+window.MediaLibrary = (() => {
+  const $ = (id) => document.getElementById(id),
+    presets = window.ZXT_MEDIA_PRESETS.presets;
+  let api,
+    preset = null,
+    params = {},
+    loaded = null,
+    busy = false,
+    visible = false,
+    dirty = false,
+    opening = 0,
+    draftKey = null;
+  const drafts = {},
+    controls = new Map();
+  function save() {
+    if (preset && draftKey)
+      drafts[draftKey] = { params: { ...params }, loaded, dirty };
+  }
+  function selectionKey() {
+    const c = window.ZxTSelection && ZxTSelection.context();
+    return JSON.stringify(c ? [c.compId, c.layers.map((l) => l.id)] : null);
+  }
+  function nativeSelectionMatches(response, key) {
+    const captured = JSON.parse(key),
+      target = response && response.selectionTarget;
+    return !!(
+      captured &&
+      captured[1].length === 1 &&
+      target &&
+      target.comp === captured[0] &&
+      target.layer === captured[1][0] &&
+      (!response.instance ||
+        (response.instance.target.comp === target.comp &&
+          response.instance.target.layer === target.layer))
+    );
+  }
+  function guidance() {
+    if (!api.ready()) return "Connect to After Effects first.";
+    const c = ZxTSelection.context();
+    if (!c || c.compId === null) return "Open a composition in After Effects.";
+    if (!c.total) return "Select a Media layer in After Effects.";
+    if (loaded) {
+      const row = c.total === 1 && c.layers[0];
+      if (
+        !row ||
+        c.compId !== loaded.target.comp ||
+        row.id !== loaded.target.layer
+      )
+        return "Selection changed. Select the loaded Media layer or Load settings again.";
+      if (row.locked) return "Unlock the selected Media layer.";
+    }
+    if (
+      !c.layers.some(
+        (l) => ["Footage", "Precomp"].includes(l.type) && !l.locked
+      ) &&
+      !c.truncated
+    )
+      return "Select an unlocked Media layer.";
+    return "";
+  }
+  function sync() {
+    if (!api) return;
+    const reason = guidance(),
+      invalid = [...controls.values()].some((c) => !c.checkValidity());
+    $("media-apply").hidden = !!loaded;
+    $("media-update").hidden = !loaded;
+    $("media-apply").disabled = busy || !!reason || invalid;
+    $("media-update").disabled = busy || !!reason || invalid || !dirty;
+    const c = ZxTSelection.context();
+    $("media-load").disabled =
+      busy ||
+      !api.ready() ||
+      !c ||
+      c.total !== 1 ||
+      !["Footage", "Precomp"].includes(c.layers[0].type);
+    $("media-mode").textContent = loaded
+      ? dirty
+        ? "APPLIED · UNSAVED CHANGES"
+        : "APPLIED · UP TO DATE"
+      : "CUSTOMIZE MEDIA";
+    $("media-guidance").textContent =
+      reason ||
+      (loaded
+        ? "Updates the loaded owned instance; its start time stays fixed."
+        : "Applies to unlocked Media layers. Other selected layer types are skipped.");
+    for (const control of controls.values()) control.disabled = busy;
+    $("media-back").disabled = busy;
+  }
+  function drawForm() {
+    controls.clear();
+    $("media-parameters").textContent = "";
+    for (const p of preset.parameters) {
+      const wrap = document.createElement("div");
+      wrap.className = "parameter";
+      const label = document.createElement("label");
+      label.textContent = p.label;
+      label.htmlFor = "media-param-" + p.key;
+      const input = document.createElement(
+        p.type === "select" ? "select" : "input"
+      );
+      input.id = label.htmlFor;
+      input.dataset.parameter = p.key;
+      if (p.type === "select")
+        for (const option of p.options) {
+          const o = document.createElement("option");
+          o.value = option;
+          o.textContent = option.replace(/-/g, " ");
+          input.appendChild(o);
+        }
+      else {
+        input.type = "number";
+        input.min = p.min;
+        input.max = p.max;
+        input.step = p.step;
+        input.required = true;
+        input.className = "exact";
+      }
+      input.value = params[p.key];
+      input.oninput = () => {
+        params[p.key] = p.type === "number" ? Number(input.value) : input.value;
+        if (p.type === "number" && !input.value) params[p.key] = NaN;
+        input.setAttribute("aria-invalid", String(!input.checkValidity()));
+        dirty = true;
+        save();
+        MediaPreview.draw($("media-preview"), preset.id, 0.5, params);
+        sync();
+      };
+      wrap.append(label, input);
+      $("media-parameters").appendChild(wrap);
+      controls.set(p.key, input);
+    }
+  }
+  function useInstance(instance) {
+    loaded = instance;
+    dirty = false;
+    if (instance) params = { ...instance.params };
+    drawForm();
+    save();
+    sync();
+  }
+  async function load() {
+    if (busy || !preset) return;
+    save(); // Preserve the original selection's dirty draft before loading another.
+    const sequence = ++opening,
+      id = preset.id,
+      key = selectionKey(),
+      r = await api.action({ action: "mediaLibrary", operation: "load", id });
+    if (
+      sequence === opening &&
+      visible &&
+      !$("media-inspector").hidden &&
+      r &&
+      preset &&
+      preset.id === id &&
+      selectionKey() === key &&
+      nativeSelectionMatches(r, key)
+    ) {
+      const nextKey = ZxTWorkspace.draftKey("media:" + id);
+      if (nextKey !== draftKey) {
+        const nextDraft = drafts[nextKey];
+        params = nextDraft
+          ? { ...nextDraft.params }
+          : Object.fromEntries(
+              preset.parameters.map((p) => [p.key, p.default])
+            );
+        draftKey = nextKey;
+      }
+      useInstance(r.instance);
+      if (!r.instance)
+        api.notice("No owned instance on this layer. Use Apply.", "info");
+    }
+  }
+  function close() {
+    if (busy) return;
+    save();
+    ++opening;
+    $("media-inspector").hidden = true;
+    MediaPreview.stop($("media-preview"));
+    ZxTWorkspace.closed();
+  }
+  async function openById(id) {
+    if (busy || !visible) return;
+    const p = presets.find((p) => p.id === id);
+    if (!p) return;
+    save();
+    preset = p;
+    draftKey = ZxTWorkspace.draftKey("media:" + id);
+    const draft = drafts[draftKey];
+    params = Object.fromEntries(p.parameters.map((c) => [c.key, c.default]));
+    loaded = null;
+    dirty = false;
+    if (draft) {
+      params = { ...draft.params };
+      loaded = draft.loaded;
+      dirty = draft.dirty;
+    }
+    $("media-title").textContent = p.name;
+    $("media-description").textContent = p.description;
+    $("media-inspector").hidden = false;
+    document
+      .querySelectorAll("#media-library .card")
+      .forEach((card) =>
+        card.classList.toggle("selected", card.dataset.preset === id)
+      );
+    ZxTWorkspace.opened();
+    drawForm();
+    sync();
+    MediaPreview.play($("media-preview"), id, params, true);
+    const sequence = ++opening,
+      c = ZxTSelection.context(),
+      key = selectionKey();
+    if (
+      !draft &&
+      api.ready() &&
+      c &&
+      c.total === 1 &&
+      ["Footage", "Precomp"].includes(c.layers[0].type)
+    ) {
+      const r = await api.action({
+        action: "mediaLibrary",
+        operation: "load",
+        id
+      });
+      if (
+        sequence === opening &&
+        preset.id === id &&
+        key === selectionKey() &&
+        r &&
+        nativeSelectionMatches(r, key)
+      )
+        useInstance(r.instance);
+    }
+  }
+  async function apply(update) {
+    if (busy || !preset) return;
+    sync();
+    if ($(update ? "media-update" : "media-apply").disabled) return;
+    save();
+    const r = await api.action({
+      action: "mediaLibrary",
+      operation: update ? "update" : "apply",
+      id: preset.id,
+      params: { ...params },
+      target: update && loaded ? loaded.target : undefined,
+      revision: update && loaded ? loaded.revision : undefined
+    });
+    if (
+      r &&
+      r.changed > 0 &&
+      r.instance &&
+      !r.recovery &&
+      nativeSelectionMatches(
+        { selectionTarget: r.instance.target, instance: r.instance },
+        selectionKey()
+      )
+    ) {
+      draftKey = ZxTWorkspace.draftKey("media:" + preset.id);
+      useInstance(r.instance);
+      MediaPreview.play($("media-preview"), preset.id, params, true);
+    }
+  }
+  function render() {
+    MediaPreview.clear();
+    const category = $("media-category").value,
+      query = $("media-search").value.trim().toLowerCase();
+    const list = ZxTCollections.filter(
+      presets.filter(
+        (p) =>
+          (category === "all" || p.category === category) &&
+          (p.name + " " + p.family + " " + p.description)
+            .toLowerCase()
+            .includes(query)
+      ),
+      (p) => "media:" + p.id,
+      "Media"
+    );
+    for (const family of ["Motion", "FX"]) {
+      const box = $("media-cards-" + family.toLowerCase());
+      box.textContent = "";
+      const items = list.filter((p) => p.category === family);
+      $("media-family-" + family.toLowerCase()).hidden = !items.length;
+      for (const p of items) {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.dataset.preset = p.id;
+        if (preset && p.id === preset.id) card.classList.add("selected");
+        const preview = document.createElement("button");
+        preview.className = "card-preview";
+        preview.type = "button";
+        preview.setAttribute("aria-label", "Preview " + p.name);
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 240;
+        preview.appendChild(canvas);
+        preview.onclick = () => openById(p.id);
+        preview.onmouseenter = () => MediaPreview.play(canvas, p.id);
+        preview.onmouseleave = () => {
+          MediaPreview.stop(canvas);
+          MediaPreview.draw(canvas, p.id);
+        };
+        preview.onfocus = preview.onmouseenter;
+        preview.onblur = preview.onmouseleave;
+        const content = document.createElement("div");
+        content.className = "card-content";
+        const title = document.createElement("h2");
+        title.textContent = p.name;
+        const actions = document.createElement("div");
+        actions.className = "card-actions";
+        const select = document.createElement("button");
+        select.className = "media-select";
+        select.textContent = "Select";
+        select.onclick = () => openById(p.id);
+        actions.appendChild(select);
+        content.append(title, actions);
+        card.append(
+          preview,
+          ZxTCollections.button("media:" + p.id, p.name),
+          content
+        );
+        box.appendChild(card);
+        MediaPreview.draw(canvas, p.id);
+      }
+    }
+    $("media-count").textContent = list.length + " Media presets";
+    $("media-empty").hidden = !!list.length;
+    $("media-empty").textContent = ZxTCollections.empty("Media");
+  }
+  return {
+    openById,
+    close,
+    loadSelected() {
+      if (!preset || $("media-inspector").hidden) {
+        api.notice(
+          "Select a Media preset, then Load settings to edit its instance.",
+          "info"
+        );
+        return;
+      }
+      return load();
+    },
+    refreshCollection() {
+      if (visible) render();
+    },
+    init(adapter) {
+      api = adapter;
+      $("media-category").onchange = render;
+      $("media-search").oninput = render;
+      $("media-back").onclick = close;
+      $("media-load").onclick = load;
+      $("media-apply").onclick = () => apply(false);
+      $("media-update").onclick = () => apply(true);
+      $("media-replay").onclick = () =>
+        preset &&
+        MediaPreview.play($("media-preview"), preset.id, params, true);
+    },
+    setVisible(on) {
+      save();
+      visible = on;
+      $("media-library").hidden = !on;
+      if (!on) {
+        ++opening;
+        $("media-inspector").hidden = true;
+        MediaPreview.clear();
+        $("media-cards-motion").textContent = "";
+        $("media-cards-fx").textContent = "";
+      } else render();
+    },
+    setBusy(on) {
+      busy = on;
+      MediaPreview.suspend(on);
+      sync();
+    }
+  };
+})();
+
+</script>
+    <script>
 /* Local-only collections. Failed operations never enter Recent. */
 window.ZxTCollections = (() => {
   'use strict';
@@ -9047,9 +9567,10 @@ window.ZxTCollections = (() => {
     ...window.MA_PRESETS.presets.map(p => 'core:' + p.id),
     ...window.YTMCore.presets.map(p => 'yu:' + p.id),
     ...(window.ZXT_SHAPE_PRESETS ? window.ZXT_SHAPE_PRESETS.presets.map(p => 'shape:' + p.id) : []),
+    ...(window.ZXT_MEDIA_PRESETS ? window.ZXT_MEDIA_PRESETS.presets.map(p => 'media:' + p.id) : []),
     'create:text', 'create:shape', 'create:solid'
   ]), listeners = [];
-  const modes = {global:'all', Text:'all', Solid:'all', Shape:'all', Create:'all'};
+  const modes = {global:'all', Text:'all', Solid:'all', Shape:'all', Media:'all', Create:'all'};
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(key)) || {}; } catch (_) {}
   const clean = (a, limit) => Array.isArray(a) ? [...new Set(a.filter(k => known.has(k)))].slice(0, limit) : [];
@@ -9106,9 +9627,9 @@ window.ZxTWorkspace = (() => {
   function navigate(name) {
     positions[section] = origin ? scroll : main.scrollTop;
     section = name;
-    if (["YU","Background","Shape"].includes(name)) library = name;
+    if (["YU","Background","Shape","Media"].includes(name)) library = name;
     if (["Tools","Curve"].includes(name)) motion = name;
-    const group = ['YU','Background','Shape'].includes(name) ? 'Library' : ['Tools','Curve'].includes(name) ? 'Motion' : name;
+    const group = ['YU','Background','Shape','Media'].includes(name) ? 'Library' : ['Tools','Curve'].includes(name) ? 'Motion' : name;
     $('workspace').classList.toggle('library-workspace', group === 'Library');
     $('library-navigation').hidden = group !== 'Library';
     $('motion-navigation').hidden = group !== 'Motion';
@@ -9118,6 +9639,7 @@ window.ZxTWorkspace = (() => {
     });
     $('yu-editor').hidden = true;
     $('shape-inspector').hidden = true;
+    $('media-inspector').hidden = true;
     closed();
   }
   return {opened,closed,navigate,draftKey(id) {
@@ -9251,6 +9773,7 @@ window.ZxTWorkspace = (() => {
     $("recovery-continue").disabled = value;
     if (window.MotionAstraYUUI) window.MotionAstraYUUI.setBusy(value);
     if (window.ShapeLibrary) window.ShapeLibrary.setBusy(value || state.recovery);
+    if (window.MediaLibrary) window.MediaLibrary.setBusy(value || state.recovery);
     if (window.MotionCurve) window.MotionCurve.setBusy(value);
     if (window.MotionAstraCreate) window.MotionAstraCreate.setBusy(value);
   }
@@ -9280,7 +9803,7 @@ window.ZxTWorkspace = (() => {
     busy(state.busy);
   }
   function mutates(payload) {
-    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools","shapeLibrary"].includes(payload.action) && payload.operation !== "load");
+    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools","shapeLibrary","mediaLibrary"].includes(payload.action) && payload.operation !== "load" && payload.operation !== "inspect");
   }
   async function action(payload) {
     if (state.busy || (state.recovery && mutates(payload))) return null;
@@ -9300,9 +9823,10 @@ window.ZxTWorkspace = (() => {
       if (window.ZxTCollections && r.changed > 0) {
         if (["apply", "update", "generateBackground"].includes(payload.action)) ZxTCollections.record("core:" + payload.id);
         if (payload.action === "shapeLibrary") ZxTCollections.record("shape:" + payload.id);
+        if (payload.action === "mediaLibrary") ZxTCollections.record("media:" + payload.id);
         if (payload.action === "yuText" && payload.operation === "apply") ZxTCollections.record("yu:" + payload.id);
       }
-      if (r.recovery || (r.changed > 0 && r.severity === "warning" && payload.action !== "shapeLibrary")) state.recovery = true;
+      if (r.recovery || (r.changed > 0 && r.severity === "warning" && payload.action !== "shapeLibrary" && payload.action !== "mediaLibrary")) state.recovery = true;
       if (r.message) notice(r.message, r.severity || "success");
       return r;
     } catch (e) {
@@ -9353,6 +9877,7 @@ window.ZxTWorkspace = (() => {
     $("yu").hidden = name !== "YU";
     $("motion-curve").hidden = name !== "Curve";
     if (window.ShapeLibrary) window.ShapeLibrary.setVisible(name === "Shape");
+    if (window.MediaLibrary) window.MediaLibrary.setVisible(name === "Media");
     if (window.MotionCurve) window.MotionCurve.setVisible(name === "Curve");
     if (window.MotionAstraYUUI)
       window.MotionAstraYUUI.setVisible(name === "YU");
@@ -9678,6 +10203,7 @@ window.ZxTWorkspace = (() => {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       if (state.tab === "Shape" && window.ShapeLibrary) return ShapeLibrary.close();
+      if (state.tab === "Media" && window.MediaLibrary) return MediaLibrary.close();
       close();
     }
   });
@@ -9727,6 +10253,7 @@ window.ZxTWorkspace = (() => {
   };
   $("load-fx").onclick = () => {
     if (state.tab === "Shape" && window.ShapeLibrary) return ShapeLibrary.loadSelected();
+    if (state.tab === "Media" && window.MediaLibrary) return MediaLibrary.loadSelected();
     if (
       state.tab === "YU" &&
       !$("yu-editor").hidden &&
@@ -9889,6 +10416,7 @@ window.ZxTWorkspace = (() => {
     };
   }
   if (window.ShapeLibrary) window.ShapeLibrary.init({action, notice, ready: () => bridge.isReady() && !state.recovery});
+  if (window.MediaLibrary) window.MediaLibrary.init({action, notice, ready: () => bridge.isReady() && !state.recovery});
   if (window.MotionCurve)
     window.MotionCurve.init({ action: action, ready: () => bridge.isReady() && !state.recovery });
   if (window.MotionAstraYUUI)
@@ -9918,6 +10446,7 @@ window.ZxTWorkspace = (() => {
       if (window.MotionAstraYUUI) window.MotionAstraYUUI.refreshCollection();
       if (window.MotionAstraCreate) window.MotionAstraCreate.refreshCollection();
       if (window.ShapeLibrary) window.ShapeLibrary.refreshCollection();
+      if (window.MediaLibrary) window.MediaLibrary.refreshCollection();
       busy(state.busy);
     });
   }

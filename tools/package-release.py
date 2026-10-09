@@ -13,7 +13,7 @@ for folder in ['CSXS','css','js','jsx','vendor']:
   if p.is_symlink(): raise ValueError('No payload symlinks: '+str(p))
   if p.name in ['fx-tools.js','fx-tools-data.js','fx-tools.jsx']: continue
   if p.is_file(): payload[p.relative_to(root).as_posix()]=p.read_bytes()
-for name in ['.debug','index.html','catalog.html','presets.json','shape-presets.json','VERSION','README.md','INSTALLATION_GUIDE.md','RELEASE_NOTES.md','EFFECTS_REFERENCE.md','THIRD_PARTY_NOTICES.md','tests/AE_SMOKE_TEST.jsx','tests/AE_YU_SMOKE_TEST.jsx']:
+for name in ['.debug','index.html','catalog.html','presets.json','shape-presets.json','media-presets.json','VERSION','README.md','INSTALLATION_GUIDE.md','RELEASE_NOTES.md','EFFECTS_REFERENCE.md','THIRD_PARTY_NOTICES.md','tests/AE_SMOKE_TEST.jsx','tests/AE_YU_SMOKE_TEST.jsx']:
  payload[name]=(root/name).read_bytes()
 sums=''.join(hashlib.sha256(data).hexdigest()+'  '+name+'\n' for name,data in sorted(payload.items()))
 payload['SHA256SUMS']=sums.encode()

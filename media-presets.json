@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "presets": [
+    {
+      "id": "slide-up",
+      "name": "Slide Up",
+      "category": "Motion",
+      "family": "Media Motion",
+      "description": "Owned Transform Position offset in layer-space pixels. Native layout stays intact; visible distance follows native scale/rotation.",
+      "parameters": [
+        {
+          "key": "distance",
+          "label": "Distance \u00b7 layer pixels",
+          "type": "number",
+          "min": 0,
+          "max": 10000,
+          "step": 1,
+          "default": 120
+        },
+        {
+          "key": "duration",
+          "label": "Duration \u00b7 seconds",
+          "type": "number",
+          "min": 0.05,
+          "max": 120,
+          "step": 0.05,
+          "default": 1
+        },
+        {
+          "key": "easing",
+          "label": "Easing",
+          "type": "select",
+          "options": [
+            "linear",
+            "ease-in",
+            "ease-out",
+            "easy"
+          ],
+          "default": "easy"
+        }
+      ]
+    },
+    {
+      "id": "pop-in",
+      "name": "Pop In",
+      "category": "Motion",
+      "family": "Media Motion",
+      "description": "Owned Transform uniform scale to 100%, optionally fading its effect Opacity. Native Scale/Opacity stay intact.",
+      "parameters": [
+        {
+          "key": "startScale",
+          "label": "Start Scale \u00b7 %",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50
+        },
+        {
+          "key": "duration",
+          "label": "Duration \u00b7 seconds",
+          "type": "number",
+          "min": 0.05,
+          "max": 120,
+          "step": 0.05,
+          "default": 1
+        },
+        {
+          "key": "easing",
+          "label": "Easing",
+          "type": "select",
+          "options": [
+            "linear",
+            "ease-in",
+            "ease-out",
+            "easy"
+          ],
+          "default": "easy"
+        },
+        {
+          "key": "fadeIn",
+          "label": "Fade In",
+          "type": "select",
+          "options": [
+            "off",
+            "on"
+          ],
+          "default": "off"
+        }
+      ]
+    },
+    {
+      "id": "blur-reveal",
+      "name": "Blur Reveal",
+      "category": "FX",
+      "family": "Media FX",
+      "description": "Owned Gaussian Blur 2 from Amount to zero; existing user Blur effects stay intact.",
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Blur Amount \u00b7 pixels",
+          "type": "number",
+          "min": 0,
+          "max": 500,
+          "step": 1,
+          "default": 20
+        },
+        {
+          "key": "duration",
+          "label": "Duration \u00b7 seconds",
+          "type": "number",
+          "min": 0.05,
+          "max": 120,
+          "step": 0.05,
+          "default": 1
+        },
+        {
+          "key": "easing",
+          "label": "Easing",
+          "type": "select",
+          "options": [
+            "linear",
+            "ease-in",
+            "ease-out",
+            "easy"
+          ],
+          "default": "easy"
+        }
+      ]
+    },
+    {
+      "id": "rgb-split",
+      "name": "RGB Split \u00b7 Channel Blur Fringe",
+      "category": "FX",
+      "family": "Media FX",
+      "description": "Safe alternative recipe: Channel Blur fringe (red Amount, blue half Amount, green/alpha zero). Chromatic blur, not geometric RGB displacement. Amount zero is neutral. Native alpha/rendering checks pending.",
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount \u00b7 blur pixels",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

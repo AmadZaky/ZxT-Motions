@@ -141,7 +141,7 @@
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2||host.shapeLibraryVersion!==1){' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2||host.shapeLibraryVersion!==1||host.mediaLibraryVersion!==1){' +
         "var data=File(" +
         JSON.stringify(path + "/jsx/presets-data.jsx") +
         ");" +
@@ -155,7 +155,7 @@
         version +
         "||host.build!==" +
         JSON.stringify(BUILD) +
-        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2||host.shapeLibraryVersion!==1)' +
+        '||typeof host.dispatch!=="function"||host.transformMotionVersion!==2||host.shapeLibraryVersion!==1||host.mediaLibraryVersion!==1)' +
         'throw Error("Host initialization failed or an old host is still installed.");}' +
         "var output=host.dispatch(" +
         JSON.stringify(encodeURIComponent('{"action":"status"}')) +
@@ -166,6 +166,7 @@
 
   async function ensureModule(payload) {
     const modules = {
+      mediaLibrary: { file: "media.jsx", label: "Media Library" },
       shapeLibrary: { file: "shape.jsx", label: "Shape Library" },
       yuText: { file: "yu-text.jsx", label: "YU Txt Motion" },
       fxTools: { file: "fx-tools.jsx", label: "FXTools" }
@@ -181,7 +182,7 @@
         "];" +
         "if(!module||module.build!==" +
         expected +
-        '||typeof module.run!=="function"' + (moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + '){' +
+        '||typeof module.run!=="function"' + (moduleKey === "mediaLibrary" ? '||module.mediaVersion!==1' : moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + '){' +
         "var file=File(" +
         JSON.stringify(extensionPath + "/jsx/" + module.file) +
         ");" +
@@ -198,7 +199,7 @@
         "];" +
         "if(!module||module.build!==" +
         expected +
-        '||typeof module.run!=="function"' + (moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + ')throw Error(' +
+        '||typeof module.run!=="function"' + (moduleKey === "mediaLibrary" ? '||module.mediaVersion!==1' : moduleKey === "shapeLibrary" ? '||module.shapeVersion!==1' : moduleKey === "yuText" ? '||module.motionVersion!==1' : '') + ')throw Error(' +
         JSON.stringify(
           module.label + " failed to register. Reinstall the complete package."
         ) +

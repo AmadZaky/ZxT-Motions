@@ -1,0 +1,661 @@
+/* Isolated, ES3 Media pilot engine. Comments + tokened native names form the
+   ownership contract. Never infers ownership from an Adobe matchName alone. */
+var codec,
+  OPEN = "[ZXT_MEDIA]",
+  CLOSE = "[/ZXT_MEDIA]",
+  serial = 0;
+function stop(message) {
+  var e = Error("ZxT Media: " + message);
+  e.noChanges = true;
+  throw e;
+}
+function definition(id) {
+  for (var i = 0; i < registry.presets.length; i++)
+    if (registry.presets[i].id === id) return registry.presets[i];
+  stop("Unknown Media preset.");
+}
+function parameters(id, raw) {
+  var d = definition(id),
+    out = {},
+    i,
+    p,
+    v,
+    j,
+    valid;
+  raw = raw || {};
+  for (i = 0; i < d.parameters.length; i++) {
+    p = d.parameters[i];
+    v = raw[p.key];
+    if (v === undefined) v = p["default"];
+    if (p.type === "number") {
+      if (typeof v !== "number" || !isFinite(v) || v < p.min || v > p.max)
+        stop("Invalid " + p.label + ".");
+    } else {
+      valid = false;
+      for (j = 0; j < p.options.length; j++)
+        if (v === p.options[j]) valid = true;
+      if (!valid) stop("Invalid " + p.label + ".");
+    }
+    out[p.key] = v;
+  }
+  return out;
+}
+function read(l) {
+  var text = String(l.comment || ""),
+    a = text.indexOf(OPEN),
+    b = text.indexOf(CLOSE),
+    data;
+  if (a < 0 && b < 0) return { schema: 1, instances: [] };
+  if (
+    a < 0 ||
+    b < a ||
+    text.indexOf(OPEN, a + OPEN.length) >= 0 ||
+    text.indexOf(CLOSE, b + CLOSE.length) >= 0
+  )
+    stop("Media ownership record is damaged; restore it before applying.");
+  try {
+    data = codec.parse(text.substring(a + OPEN.length, b));
+  } catch (e) {
+    stop("Media ownership record is damaged.");
+  }
+  if (!data || data.schema !== 1 || !(data.instances instanceof Array))
+    stop("Unsupported Media ownership record.");
+  var seen = {},
+    i,
+    r,
+    j;
+  for (i = 0; i < data.instances.length; i++) {
+    r = data.instances[i];
+    definition(r.id);
+    parameters(r.id, r.params);
+    if (
+      seen[r.id] ||
+      seen["token:" + r.token] ||
+      typeof r.token !== "string" ||
+      !/^[a-z0-9_]+$/.test(r.token) ||
+      typeof r.start !== "number" ||
+      !isFinite(r.start) ||
+      !r.node ||
+      typeof r.node.name !== "string" ||
+      r.node.name !== nodeName(r.id, r.token) ||
+      typeof r.node.match !== "string" ||
+      !(r.states instanceof Array) ||
+      !r.states.length
+    )
+      stop("Media ownership record is invalid.");
+    seen[r.id] = true;
+    seen["token:" + r.token] = true;
+    for (j = 0; j < r.states.length; j++) {
+      var s = r.states[j];
+      if (
+        typeof s.match !== "string" ||
+        !validValue(s.value) ||
+        typeof s.expression !== "string" ||
+        typeof s.enabled !== "boolean"
+      )
+        stop("Media property record is invalid.");
+    }
+  }
+  return data;
+}
+function write(l, data) {
+  var text = String(l.comment || ""),
+    a = text.indexOf(OPEN),
+    b = text.indexOf(CLOSE),
+    record = OPEN + codec.encode(data) + CLOSE;
+  if (a >= 0)
+    l.comment =
+      text.substring(0, a) + record + text.substring(b + CLOSE.length);
+  else l.comment = text + (text ? "\n" : "") + record;
+}
+function instance(data, id) {
+  for (var i = 0; i < data.instances.length; i++)
+    if (data.instances[i].id === id) return data.instances[i];
+  return null;
+}
+function layerId(l) {
+  if (typeof l.id !== "number" || !isFinite(l.id))
+    stop(
+      "Media requires stable layer IDs (AE 2022 or newer). Use AE 2025 for this pilot."
+    );
+  return l.id;
+}
+function compId(c) {
+  if (typeof c.id !== "number" || !isFinite(c.id))
+    stop("Stable composition ID required.");
+  return c.id;
+}
+function identity(c, l, r) {
+  return { comp: compId(c), layer: layerId(l), token: r.token };
+}
+function same(a, b) {
+  return (
+    a && b && a.comp === b.comp && a.layer === b.layer && a.token === b.token
+  );
+}
+function nodeName(id, token) {
+  return "ZxT Media " + definition(id).category + " | " + id + " | " + token;
+}
+function owned(l, r) {
+  var root = l.property("ADBE Effect Parade"),
+    found = [];
+  if (root)
+    for (var i = 1; i <= root.numProperties; i++) {
+      var p = root.property(i);
+      if (p.name === r.node.name) {
+        if (p.matchName !== r.node.match) stop("Owned effect changed type.");
+        found.push(p);
+      }
+    }
+  if (found.length !== 1)
+    stop("Owned Media effect removed, renamed or duplicated.");
+  if (found[0].enabled === false)
+    stop("Owned Media effect disabled externally.");
+  return found[0];
+}
+function nativeMatch(id) {
+  return id === "slide-up" || id === "pop-in"
+    ? "ADBE Geometry2"
+    : id === "blur-reveal"
+      ? "ADBE Gaussian Blur 2"
+      : "ADBE Channel Blur";
+}
+function audit(c, l, data) {
+  var root = l.property("ADBE Effect Parade"),
+    i,
+    j,
+    p,
+    r;
+  for (i = 0; i < data.instances.length; i++) {
+    r = data.instances[i];
+    if (
+      r.comp !== compId(c) ||
+      r.layer !== layerId(l) ||
+      r.source !== l.source.id
+    )
+      stop("Stale/copied Media ownership identity.");
+    if (
+      r.node.match !== nativeMatch(r.id) ||
+      r.node.name !== nodeName(r.id, r.token)
+    )
+      stop("Media native record mismatch.");
+    var expected = matches(r.id);
+    if (r.states.length !== expected.length)
+      stop("Incomplete Media snapshots.");
+    for (j = 0; j < expected.length; j++)
+      if (r.states[j].match !== expected[j])
+        stop("Damaged Media snapshot contract.");
+    validateOwned(owned(l, r), r);
+  }
+  if (root)
+    for (i = 1; i <= root.numProperties; i++) {
+      p = root.property(i);
+      if (/^ZxT Media (Motion|FX) \|/.test(p.name)) {
+        var known = false;
+        for (j = 0; j < data.instances.length; j++)
+          if (data.instances[j].node.name === p.name) known = true;
+        if (!known)
+          stop("Orphan managed Media name; restore ownership before applying.");
+      }
+    }
+}
+function eligible(l) {
+  if (
+    !(l instanceof AVLayer) ||
+    l instanceof TextLayer ||
+    l instanceof ShapeLayer ||
+    l.nullLayer ||
+    l.adjustmentLayer
+  )
+    return false;
+  if (typeof CameraLayer !== "undefined" && l instanceof CameraLayer)
+    return false;
+  if (typeof LightLayer !== "undefined" && l instanceof LightLayer)
+    return false;
+  var s = l.source;
+  if (
+    !s ||
+    !(
+      s instanceof CompItem ||
+      (typeof FootageItem !== "undefined" && s instanceof FootageItem)
+    )
+  )
+    return false;
+  if (
+    s.mainSource instanceof SolidSource ||
+    !l.hasVideo ||
+    s.hasVideo === false ||
+    s.footageMissing
+  )
+    return false;
+  return (
+    typeof l.id === "number" &&
+    isFinite(l.id) &&
+    typeof s.id === "number" &&
+    isFinite(s.id)
+  );
+}
+function validValue(v) {
+  if (typeof v === "number") return isFinite(v);
+  if (v instanceof Array && v.length === 2)
+    return (
+      typeof v[0] === "number" &&
+      isFinite(v[0]) &&
+      typeof v[1] === "number" &&
+      isFinite(v[1])
+    );
+  return false;
+}
+function equal(a, b) {
+  if (typeof a !== typeof b) return false;
+  if (typeof a === "number") return Math.abs(a - b) < 0.000001;
+  return (
+    a instanceof Array &&
+    b instanceof Array &&
+    a.length === b.length &&
+    equal(a[0], b[0]) &&
+    equal(a[1], b[1])
+  );
+}
+function base(p) {
+  return p.valueAtTime(0, true);
+}
+function snapshot(p) {
+  var v = base(p);
+  if (!validValue(v)) stop("Native Media scalar/vector contract invalid.");
+  return {
+    match: p.matchName,
+    value: v,
+    expression: String(p.expression || ""),
+    enabled: !!p.expressionEnabled
+  };
+}
+function states(g, matches) {
+  var a = [];
+  for (var i = 0; i < matches.length; i++) {
+    var p = g.property(matches[i]);
+    if (!p) stop("Required native Media property unavailable: " + matches[i]);
+    a.push(snapshot(p));
+  }
+  return a;
+}
+function validateOwned(g, r) {
+  for (var i = 0; i < r.states.length; i++) {
+    var s = r.states[i],
+      p = g.property(s.match);
+    if (
+      !p ||
+      p.numKeys ||
+      !equal(base(p), s.value) ||
+      String(p.expression || "") !== s.expression ||
+      !!p.expressionEnabled !== s.enabled
+    )
+      stop(
+        "This Media instance has custom keyframes, expressions or values. Restore its managed controls before Update."
+      );
+  }
+}
+function set(g, name, v, expression) {
+  var p = g.property(name),
+    old = p && base(p),
+    i;
+  if (
+    !p ||
+    p.matchName !== name ||
+    !validValue(old) ||
+    !validValue(v) ||
+    typeof old !== typeof v
+  )
+    stop("Native property/dimension mismatch: " + name);
+  if (v instanceof Array) {
+    if (!(old instanceof Array) || old.length !== v.length)
+      stop("Native vector dimension mismatch.");
+  }
+  if (typeof v === "number") {
+    if (
+      (p.hasMin &&
+        (typeof p.minValue !== "number" ||
+          !isFinite(p.minValue) ||
+          v < p.minValue)) ||
+      (p.hasMax &&
+        (typeof p.maxValue !== "number" ||
+          !isFinite(p.maxValue) ||
+          v > p.maxValue))
+    )
+      stop("Unsupported native range: " + name);
+  } else
+    for (i = 0; i < v.length; i++) {
+      if (
+        p.hasMin &&
+        v[i] < (p.minValue instanceof Array ? p.minValue[i] : p.minValue)
+      )
+        stop("Vector below native range.");
+      if (
+        p.hasMax &&
+        v[i] > (p.maxValue instanceof Array ? p.maxValue[i] : p.maxValue)
+      )
+        stop("Vector above native range.");
+    }
+  if (expression && !p.canSetExpression)
+    stop("Native property does not support expressions.");
+  p.setValue(v);
+  if (p.canSetExpression) {
+    p.expression = expression || "";
+    p.expressionEnabled = !!expression;
+    if (p.expressionError)
+      stop("Native expression error: " + p.expressionError);
+  }
+}
+function ease(mode) {
+  if (mode === "ease-in") return "u=u*u;";
+  if (mode === "ease-out") return "u=1-(1-u)*(1-u);";
+  if (mode === "easy") return "u=u*u*(3-2*u);";
+  return "";
+}
+function timed(r, p, result) {
+  return (
+    "// ZxT Media " +
+    r.token +
+    "\nvar u=Math.max(0,Math.min(1,(time-" +
+    r.start +
+    ")/" +
+    p.duration +
+    "));\n" +
+    ease(p.easing) +
+    result +
+    ";"
+  );
+}
+function matches(id) {
+  var m = nativeMatch(id),
+    n = m === "ADBE Geometry2" ? 11 : m === "ADBE Gaussian Blur 2" ? 3 : 4,
+    a = [];
+  for (var i = 1; i <= n; i++) a.push(m + "-" + (i < 10 ? "000" : "00") + i);
+  return a;
+}
+function geometryContract(g, l) {
+  var a = base(g.property("ADBE Geometry2-0001")),
+    b = base(g.property("ADBE Geometry2-0002"));
+  if (
+    !validValue(a) ||
+    !(a instanceof Array) ||
+    !equal(a, b) ||
+    !equal(a, [l.width / 2, l.height / 2])
+  )
+    stop(
+      "Transform neutral Anchor/Position not verified in source coordinates."
+    );
+  var neutral = [1, 100, 100, 0, 0, 0, 100];
+  for (var i = 0; i < neutral.length; i++)
+    if (!equal(base(g.property("ADBE Geometry2-000" + (i + 3))), neutral[i]))
+      stop("Unsupported Transform neutral/uniform property contract.");
+  return a;
+}
+function configure(g, r, p) {
+  var m = nativeMatch(r.id),
+    i,
+    names = matches(r.id);
+  // All fields must exist and have exact match names before any write.
+  for (i = 0; i < names.length; i++)
+    if (!g.property(names[i]) || g.property(names[i]).matchName !== names[i])
+      stop("Missing native property: " + names[i]);
+  if (m === "ADBE Geometry2") {
+    var pivot = r.pivot;
+    set(g, names[0], pivot);
+    set(g, names[2], 1);
+    set(g, names[3], 100);
+    set(g, names[4], 100);
+    set(g, names[5], 0);
+    set(g, names[6], 0);
+    set(g, names[7], 0);
+    set(g, names[8], 100);
+    set(g, names[9], 0);
+    set(g, names[10], 0);
+    if (r.id === "slide-up") {
+      set(g, names[1], [pivot[0], pivot[1] + p.distance]);
+      set(
+        g,
+        names[1],
+        pivot,
+        timed(
+          r,
+          p,
+          "[" + pivot[0] + "," + pivot[1] + "+" + p.distance + "*(1-u)]"
+        )
+      );
+    } else {
+      set(g, names[1], pivot);
+      set(g, names[3], p.startScale);
+      set(
+        g,
+        names[3],
+        100,
+        timed(r, p, p.startScale + "+(100-" + p.startScale + ")*u")
+      );
+      if (p.fadeIn === "on") set(g, names[8], 100, timed(r, p, "100*u"));
+    }
+  } else if (r.id === "blur-reveal") {
+    set(g, names[1], 1);
+    set(g, names[2], 1);
+    set(g, names[0], p.amount);
+    set(g, names[0], 0, timed(r, p, p.amount + "*(1-u)"));
+  } else {
+    set(g, names[0], p.amount);
+    set(g, names[1], 0);
+    set(g, names[2], p.amount / 2);
+    set(g, names[3], 0);
+  }
+}
+function createNode(l, r) {
+  var root = l.property("ADBE Effect Parade"),
+    m = nativeMatch(r.id);
+  if (!root || !root.canAddProperty(m))
+    stop("Required native Media effect unavailable: " + m);
+  r.node = { kind: "effect", match: m, name: nodeName(r.id, r.token) };
+  var node = root.addProperty(m),
+    index = node.propertyIndex;
+  try {
+    node = root.property(index);
+    node.name = r.node.name;
+  } catch (error) {
+    try {
+      root.property(index).remove();
+    } catch (rollbackError) {
+      error.recovery = true;
+    }
+    throw error;
+  }
+  return owned(l, r);
+}
+function restore(g, a) {
+  for (var i = 0; i < a.length; i++) {
+    var s = a[i],
+      p = g.property(s.match);
+    p.setValue(s.value);
+    if (p.canSetExpression) {
+      p.expression = s.expression;
+      p.expressionEnabled = s.enabled;
+    }
+  }
+}
+function applyOne(c, l, a, p) {
+  layerId(l); // Never bind Media Update to a reorderable layer index.
+  var data = read(l),
+    r = instance(data, a.id),
+    oldComment = String(l.comment || ""),
+    g,
+    created = false,
+    before = null;
+  audit(c, l, data);
+  if (a.operation === "update") {
+    if (!r) stop("No owned instance. Apply first.");
+    if (!same(a.target, identity(c, l, r)))
+      stop("Selection changed. Load Media settings again.");
+    if (a.revision !== codec.encode(r))
+      stop("Media settings changed. Load them again before Update.");
+  }
+  if (r) {
+    g = owned(l, r);
+    validateOwned(g, r);
+    before = states(g, matches(r.id));
+  } else {
+    if (a.operation !== "apply") stop("Apply this Media preset first.");
+    if (a.id !== "rgb-split" && (c.time < l.inPoint || c.time >= l.outPoint))
+      stop("Move the playhead inside the selected layer before Apply.");
+    r = {
+      id: a.id,
+      token: "s" + new Date().getTime().toString(36) + "_" + ++serial,
+      params: p,
+      start: c.time,
+      node: null,
+      states: [],
+      comp: compId(c),
+      layer: layerId(l),
+      source: l.source.id
+    };
+  }
+  if (p.duration && (r.start < l.inPoint || r.start >= l.outPoint))
+    stop("Original start is outside the current layer bounds.");
+  if (p.duration && r.start + p.duration > l.outPoint + 0.000001)
+    stop("Duration extends beyond the layer out-point.");
+  try {
+    if (!g) {
+      g = createNode(l, r);
+      created = true;
+      g = owned(l, r);
+      if (nativeMatch(r.id) === "ADBE Geometry2")
+        r.pivot = geometryContract(g, l);
+    }
+    configure(g, r, p);
+    r.params = p;
+    r.states = states(g, matches(r.id));
+    if (created) data.instances.push(r);
+    write(l, data);
+    return r;
+  } catch (error) {
+    var recovery = false;
+    try {
+      if (created) owned(l, r).remove();
+      else if (before) restore(owned(l, r), before);
+      l.comment = oldComment;
+    } catch (rollbackError) {
+      recovery = true;
+    }
+    if (recovery) {
+      var e = Error(
+        String(error) + " Rollback incomplete; Undo once and inspect the layer."
+      );
+      e.recovery = true;
+      throw e;
+    }
+    throw error;
+  }
+}
+function run(a, shared) {
+  codec = shared;
+  if (a.operation === "inspect") {
+    var cc = app.project && app.project.activeItem,
+      rows = [];
+    if (cc instanceof CompItem)
+      for (var ii = 0; ii < cc.selectedLayers.length; ii++) {
+        var ll = cc.selectedLayers[ii];
+        rows.push({ id: ll.id, eligible: eligible(ll), locked: !!ll.locked });
+      }
+    return {
+      ok: true,
+      comp: cc instanceof CompItem ? compId(cc) : null,
+      layers: rows
+    };
+  }
+  definition(a.id);
+  if (
+    a.operation !== "apply" &&
+    a.operation !== "update" &&
+    a.operation !== "load"
+  )
+    stop("Invalid Media operation.");
+  var c = app.project && app.project.activeItem;
+  if (!(c instanceof CompItem)) stop("Open a composition.");
+  var layers = c.selectedLayers;
+  if (!layers.length) stop("Select a Media layer.");
+  if (a.operation === "load") {
+    if (layers.length !== 1 || !eligible(layers[0]) || layers[0].locked)
+      stop("Select exactly one unlocked eligible Media layer to Load.");
+    var d = read(layers[0]),
+      r = instance(d, a.id);
+    audit(c, layers[0], d);
+    var selectionTarget = {
+      comp: compId(c),
+      layer: layerId(layers[0]),
+      source: layers[0].source.id
+    };
+    if (!r)
+      return { ok: true, selectionTarget: selectionTarget, instance: null };
+    owned(layers[0], r);
+    return {
+      ok: true,
+      selectionTarget: selectionTarget,
+      instance: {
+        id: r.id,
+        params: r.params,
+        start: r.start,
+        target: identity(c, layers[0], r),
+        revision: codec.encode(r)
+      }
+    };
+  }
+  if (a.operation === "update" && (layers.length !== 1 || !a.target))
+    stop("Select the loaded Media layer to Update.");
+  if (a.operation === "update") {
+    var record = instance(read(layers[0]), a.id);
+    if (!record || !same(a.target, identity(c, layers[0], record)))
+      stop("Selection changed. Load Media settings again.");
+  }
+  var p = parameters(a.id, a.params),
+    changed = 0,
+    errors = [],
+    recovery = false;
+  for (var i = 0; i < layers.length; i++) {
+    var l = layers[i];
+    try {
+      if (!eligible(l)) stop("Requires a Media layer.");
+      if (l.locked) stop("Unlock the Media layer first.");
+      applyOne(c, l, a, p);
+      changed++;
+    } catch (e) {
+      errors.push(l.name + ": " + String(e));
+      if (e.recovery) {
+        recovery = true;
+        break;
+      }
+    }
+  }
+  var result = {
+    ok: true,
+    changed: changed,
+    message:
+      definition(a.id).name +
+      ": " +
+      changed +
+      " Media layer(s) " +
+      (a.operation === "update" ? "updated" : "applied") +
+      "."
+  };
+  if (errors.length) {
+    result.severity = "warning";
+    result.message += "\n" + errors.join("\n");
+  }
+  if (recovery) result.recovery = true;
+  if (changed === 1 && layers.length === 1) {
+    var current = instance(read(layers[0]), a.id);
+    result.instance = {
+      id: current.id,
+      params: current.params,
+      start: current.start,
+      target: identity(c, layers[0], current),
+      revision: codec.encode(current)
+    };
+  }
+  return result;
+}
+return { run: run, mediaVersion: 1 };

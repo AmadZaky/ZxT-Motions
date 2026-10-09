@@ -127,3 +127,24 @@ nav,#quick{background:var(--panel)}
  #shape-inspector .inspector-head button{min-height:24px;padding:3px 6px}
  #shape-inspector .inspector-actions{padding:4px 8px}
 }
+
+/* Media is an additive Library adapter; existing Text/SolidGen selectors stay intact. */
+.media-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:10px;margin-top:12px}
+#media-library>details{margin-bottom:12px;background:transparent}
+#media-search{width:100%;box-sizing:border-box;font-size:11px}
+#media-inspector{flex:1;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;background:var(--panel);border-left:1px solid var(--line)}
+#media-title{font-size:16px;margin:5px 0}#media-preview{display:block;width:100%;max-width:220px;aspect-ratio:1;margin:auto;border:1px solid var(--line);border-radius:7px}
+#media-description{font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+#media-inspector .inspector-actions{grid-template-columns:1fr}#media-parameters .parameter{min-width:0}#media-parameters label{overflow-wrap:anywhere}
+@media(min-width:760px){#workspace>#media-inspector{flex:0 0 300px;width:300px}}
+@media(max-width:759px){#workspace>#media-inspector{width:100%;flex:1}}
+@media(max-height:420px){#media-inspector{grid-template-rows:auto minmax(0,1fr) auto}.inspector-head h2#media-title{font-size:13px;margin:2px 0}}
+#media-guidance{font-size:10px;line-height:1.4;color:var(--muted);overflow-wrap:anywhere}
+#media-inspector .inspector-scroll{overflow:auto;min-height:0}
+@media(max-height:420px){
+ #media-inspector .inspector-head{padding:4px 8px}
+ #media-inspector .inspector-head .eyebrow{display:none}
+ #media-inspector .inspector-head h2{margin:0}
+ #media-inspector .inspector-head button{min-height:24px;padding:3px 6px}
+ #media-inspector .inspector-actions{padding:4px 8px}
+}

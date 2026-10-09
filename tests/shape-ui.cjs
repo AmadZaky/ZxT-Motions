@@ -60,8 +60,8 @@ const assert = require("node:assert/strict"),
     );
     assert(
       await page
-        .getByRole("button", { name: "Media · not available" })
-        .isDisabled(),
+        .locator('[data-tab="Media"]')
+        .isEnabled(),
     );
     await page.locator('[data-tab="Shape"]').click();
     assert.equal(await page.locator("#shape-library .card").count(), 4);
