@@ -3353,7 +3353,7 @@ var MotionAstra = (function () {
           throw loadError;
         }
       } else if (
-        (a.action === "fxTools" || a.action === "yuText") &&
+        (a.action === "fxTools" || a.action === "yuText" || a.action === "shapeLibrary") &&
         a.operation === "load"
       ) {
         result = moduleHandler(a.action).run(a, {
@@ -3362,6 +3362,9 @@ var MotionAstra = (function () {
         });
       } else {
         var routes = {
+          shapeLibrary: function () {
+            return moduleHandler("shapeLibrary").run(a, {parse: parse, encode: encode});
+          },
           fxTools: function () {
             return moduleHandler("fxTools").run(a, {
               parse: parse,
@@ -3395,7 +3398,9 @@ var MotionAstra = (function () {
         };
         if (!routes.hasOwnProperty(a.action))
           fail("Unknown MotionAstra action: " + a.action);
-        app.beginUndoGroup(a.action === "pasteMotion" ? "Paste ZxT Motion" : "MotionAstra · " + a.action);
+        var undoLabel = "ZxT Shape · Apply";
+        if (a.operation === "update") undoLabel = "ZxT Shape · Update";
+        app.beginUndoGroup(a.action === "shapeLibrary" ? undoLabel : a.action === "pasteMotion" ? "Paste ZxT Motion" : "MotionAstra · " + a.action);
         undo = true;
         result = routes[a.action]();
         result.ok = true;
@@ -3419,7 +3424,7 @@ var MotionAstra = (function () {
       try {
         app.endUndoGroup();
       } catch (undoError) {
-        if (a.action === "pasteMotion") {
+        if (a.action === "pasteMotion" || a.action === "shapeLibrary") {
           // Preserve mutation uncertainty in a handled reply, so the panel's
           // recovery guard cannot lose it through a rejected bridge response.
           result = {
@@ -3451,6 +3456,6 @@ var MotionAstra = (function () {
     throw Error(
       "MotionAstra JSON transport self-check failed. Restart AE and install the full package."
     );
-  return { dispatch: dispatch, version: "1.0.0", build: BUILD, transformMotionVersion: 2 };
+  return { dispatch: dispatch, version: "1.0.0", build: BUILD, transformMotionVersion: 2, shapeLibraryVersion: 1 };
 })();
 if (typeof $ !== "undefined" && $.global) $.global.MotionAstra = MotionAstra;

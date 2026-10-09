@@ -1,0 +1,328 @@
+{
+  "baseline": "44976125a91da42d7641af34bb333d9da7f68fe0",
+  "date": "2026-10-09",
+  "nativeAEValidated": false,
+  "results": [
+    {
+      "group": "host/static",
+      "command": "node tests/static.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/engine.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/expressions.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/bridge.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/tools.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/create-tools.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/font-sources.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/checkboxes.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/parser-boundary.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/update-target.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/background-create.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/fx-target.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/panel-state.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/background-stability.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/preview-idle.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/loop-modes.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/background-colors.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/loop-migration.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/features-282.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/compact-controls.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/switcher-choice.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/yu-text.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/motion-curve.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/fx-tools.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/module-isolation.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/smart-apply.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/bridge-lifecycle.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/glass-surface.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/fxtools-native-contract.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/selection-context.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/animation-preservation.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/collections.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/official-collections.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/transform-motion.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/preset-motion.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/create-cleanup.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/studio-binding.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/shape-host.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/shape-safety.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/shape-bridge.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/shape-collections.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/shape-boundaries.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "host/static",
+      "command": "node tests/es3.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/reliability-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/official-cleanup-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/create-cleanup-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/select-gap-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/studio-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/studio-workflow-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/checkbox-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/tweaker-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/yu-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/curve-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/font-search-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/global-search-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/switcher-choice-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "browser/model",
+      "command": "node tests/shape-ui.cjs",
+      "exitCode": 0
+    },
+    {
+      "group": "packaging/source contracts",
+      "command": "python tests/package.py",
+      "exitCode": 0
+    },
+    {
+      "group": "packaging/source contracts",
+      "command": "python tests/official-release.py",
+      "exitCode": 0
+    },
+    {
+      "group": "packaging/source contracts",
+      "command": "python tests/universal-installer.py",
+      "exitCode": 0
+    },
+    {
+      "group": "packaging/source contracts",
+      "command": "python tests/official-repair.py",
+      "exitCode": 0
+    }
+  ],
+  "shapeBrowserRepeats": {
+    "runs": 10,
+    "passed": 10,
+    "fixtureSeededOnce": true,
+    "exactStorageAcrossReload": true
+  },
+  "summary": {
+    "scripts": 62,
+    "passed": 62,
+    "nativeAEValidated": false
+  }
+}

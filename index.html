@@ -55,7 +55,7 @@
         <button data-tab="Create" data-workspace="Create">Create</button>
       </div>
       <div id="library-navigation" class="studio-subnav" aria-label="Library type">
-        <button data-tab="YU">Text</button><button data-tab="Background">SolidGen</button>
+        <button data-tab="YU">Text</button><button data-tab="Shape">Shape</button><button type="button" disabled title="Media is reserved for a future approved task" aria-label="Media · not available">Media</button><button data-tab="Background">SolidGen</button>
       </div>
       <div id="motion-navigation" class="studio-subnav" aria-label="Motion tools" hidden>
         <button data-tab="Tools">Quick Tools</button><button data-tab="Curve">Curve</button>
@@ -73,6 +73,15 @@
     <div id="workspace">
       <aside id="inspector-empty" aria-label="Inspector"><span class="eyebrow">INSPECTOR</span><h2>Make it move.</h2><p>Select a preset to preview and configure it. Select a layer in After Effects, then Apply.</p><p>Already applied? Use Load settings to update that instance here.</p></aside>
       <main>
+        <section id="shape-library" hidden aria-label="Shape Library">
+          <div class="collection-filters" data-collection-scope="Shape" role="group" aria-label="Shape collection"><button type="button" data-collection="all" aria-pressed="true">All</button><button type="button" data-collection="favorites" aria-pressed="false">Favorites</button><button type="button" data-collection="recent" aria-pressed="false">Recent</button></div>
+          <div class="yu-filters"><label for="shape-category">Animation category</label><select id="shape-category"><option value="all">All</option><option value="Motion">Motion</option><option value="FX">FX</option></select></div>
+          <input id="shape-search" type="search" placeholder="Search Shape presets" aria-label="Search Shape presets" />
+          <p id="shape-count" class="hint"></p><p id="shape-empty" class="empty" hidden></p>
+          <details id="shape-family-motion" open><summary>Shape Motion</summary><div id="shape-cards-motion" class="shape-cards"></div></details>
+          <details id="shape-family-fx" open><summary>Shape FX</summary><div id="shape-cards-fx" class="shape-cards"></div></details>
+        </section>
+
         <section id="create" hidden aria-label="Create layers">
           <div class="eyebrow">START WITH SOMETHING SIMPLE</div>
           <h1>Create</h1>
@@ -712,6 +721,11 @@ ZxT-Motions</textarea
           </details>
         </section>
       </main>
+      <aside id="shape-inspector" hidden aria-labelledby="shape-title">
+        <div class="inspector-head"><div><span id="shape-mode" class="eyebrow">CUSTOMIZE SHAPE</span><h2 id="shape-title"></h2></div><button id="shape-back">← Library</button></div>
+        <div class="inspector-scroll"><p id="shape-guidance" class="target-guidance" role="status"></p><canvas id="shape-preview" width="240" height="240" aria-label="Illustrative Shape preview"></canvas><p class="hint">Illustrative preview · rendering is performed in AE.</p><button id="shape-replay">Replay preview</button><p id="shape-description"></p><div id="shape-parameters"></div><button id="shape-load" data-host>Load settings</button></div>
+        <div class="inspector-actions"><button id="shape-apply" class="primary" data-host>Apply</button><button id="shape-update" class="primary" data-host hidden>Update</button></div>
+      </aside>
       <aside id="inspector" hidden aria-labelledby="fx-title">
         <div class="inspector-head">
           <div>
@@ -785,6 +799,9 @@ ZxT-Motions</textarea
     <script src="js/create.js"></script>
     <script src="js/search.js"></script>
     <script src="js/selection.js"></script>
+    <script src="js/shape-presets-data.js"></script>
+    <script src="js/visual-preview.js"></script>
+    <script src="js/visual-library.js"></script>
     <script src="js/collections.js"></script>
     <script src="js/workspace.js"></script>
     <script src="js/main.js"></script>

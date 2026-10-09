@@ -4,9 +4,10 @@ window.ZxTCollections = (() => {
   const key = 'zxt-collections-v1', known = new Set([
     ...window.MA_PRESETS.presets.map(p => 'core:' + p.id),
     ...window.YTMCore.presets.map(p => 'yu:' + p.id),
+    ...(window.ZXT_SHAPE_PRESETS ? window.ZXT_SHAPE_PRESETS.presets.map(p => 'shape:' + p.id) : []),
     'create:text', 'create:shape', 'create:solid'
   ]), listeners = [];
-  const modes = {global:'all', Text:'all', Solid:'all', Create:'all'};
+  const modes = {global:'all', Text:'all', Solid:'all', Shape:'all', Create:'all'};
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(key)) || {}; } catch (_) {}
   const clean = (a, limit) => Array.isArray(a) ? [...new Set(a.filter(k => known.has(k)))].slice(0, limit) : [];

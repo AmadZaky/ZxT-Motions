@@ -115,6 +115,7 @@
     }
     $("recovery-continue").disabled = value;
     if (window.MotionAstraYUUI) window.MotionAstraYUUI.setBusy(value);
+    if (window.ShapeLibrary) window.ShapeLibrary.setBusy(value || state.recovery);
     if (window.MotionCurve) window.MotionCurve.setBusy(value);
     if (window.MotionAstraCreate) window.MotionAstraCreate.setBusy(value);
   }
@@ -144,7 +145,7 @@
     busy(state.busy);
   }
   function mutates(payload) {
-    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools"].includes(payload.action) && payload.operation !== "load");
+    return ["apply","update","generateBackground","tool","compact"].includes(payload.action) || (["yuText","fxTools","shapeLibrary"].includes(payload.action) && payload.operation !== "load");
   }
   async function action(payload) {
     if (state.busy || (state.recovery && mutates(payload))) return null;
@@ -163,9 +164,10 @@
       }
       if (window.ZxTCollections && r.changed > 0) {
         if (["apply", "update", "generateBackground"].includes(payload.action)) ZxTCollections.record("core:" + payload.id);
+        if (payload.action === "shapeLibrary") ZxTCollections.record("shape:" + payload.id);
         if (payload.action === "yuText" && payload.operation === "apply") ZxTCollections.record("yu:" + payload.id);
       }
-      if (r.changed > 0 && r.severity === "warning") state.recovery = true;
+      if (r.recovery || (r.changed > 0 && r.severity === "warning" && payload.action !== "shapeLibrary")) state.recovery = true;
       if (r.message) notice(r.message, r.severity || "success");
       return r;
     } catch (e) {
@@ -215,6 +217,7 @@
     $("settings").hidden = name !== "Settings";
     $("yu").hidden = name !== "YU";
     $("motion-curve").hidden = name !== "Curve";
+    if (window.ShapeLibrary) window.ShapeLibrary.setVisible(name === "Shape");
     if (window.MotionCurve) window.MotionCurve.setVisible(name === "Curve");
     if (window.MotionAstraYUUI)
       window.MotionAstraYUUI.setVisible(name === "YU");
@@ -538,7 +541,10 @@
   $("close").textContent = "← Back to Library";
   $("close").onclick = close;
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") close();
+    if (e.key === "Escape") {
+      if (state.tab === "Shape" && window.ShapeLibrary) return ShapeLibrary.close();
+      close();
+    }
   });
   $("apply").onclick = async () => {
     if (state.preset && !state.invalid.size) {
@@ -585,6 +591,7 @@
     }
   };
   $("load-fx").onclick = () => {
+    if (state.tab === "Shape" && window.ShapeLibrary) return ShapeLibrary.loadSelected();
     if (
       state.tab === "YU" &&
       !$("yu-editor").hidden &&
@@ -746,6 +753,7 @@
       store.set(key, on);
     };
   }
+  if (window.ShapeLibrary) window.ShapeLibrary.init({action, notice, ready: () => bridge.isReady() && !state.recovery});
   if (window.MotionCurve)
     window.MotionCurve.init({ action: action, ready: () => bridge.isReady() && !state.recovery });
   if (window.MotionAstraYUUI)
@@ -774,6 +782,7 @@
       if (["YU", "Background"].includes(state.tab)) render();
       if (window.MotionAstraYUUI) window.MotionAstraYUUI.refreshCollection();
       if (window.MotionAstraCreate) window.MotionAstraCreate.refreshCollection();
+      if (window.ShapeLibrary) window.ShapeLibrary.refreshCollection();
       busy(state.busy);
     });
   }
